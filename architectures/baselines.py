@@ -3,6 +3,8 @@ import torch
 from torch import nn
 
 
+# TODO - use/create a baseline that isn't total garbage
+
 # taken from https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
 class BaselineConvNet(nn.Module):
     def __init__(self):
@@ -23,3 +25,14 @@ class BaselineConvNet(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
+
+
+class BaselineMLP(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.layers = nn.Sequential(nn.Linear(400, 16), nn.ReLU(), nn.Linear(16, 1))
+
+    def forward(self, x):
+        x = torch.flatten(x, start_dim=1)
+        return self.layers(x)

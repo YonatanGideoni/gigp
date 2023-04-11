@@ -4,7 +4,7 @@ from torch import nn
 from torch.optim.adam import Adam
 from torch.utils.data import TensorDataset, DataLoader
 
-from architectures.baselines import BaselineConvNet
+from architectures.baselines import BaselineConvNet, BaselineMLP
 from consts import DEVICE
 from utils import TrainConfig, train_loop, test_loop
 
@@ -27,7 +27,7 @@ def create_dataset(img_len: int, n_imgs: int, config: TrainConfig) -> DataLoader
     return data_loader
 
 
-def main(train_conf: TrainConfig, network=BaselineConvNet(), img_size: int = 20, train_size: int = 10 ** 3,
+def main(train_conf: TrainConfig, network=BaselineMLP(), img_size: int = 20, train_size: int = 10 ** 3,
          test_size: int = 10 ** 2):
     train_data = create_dataset(img_size, train_size, train_conf)
     test_data = create_dataset(img_size, test_size, train_conf)
