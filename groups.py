@@ -12,3 +12,11 @@ class Group(ABC):
     def coords_to_orbit(self, coords):
         """Input - coordinates [?], output - orbit each coord belongs to [?] """
         pass
+
+
+class SO2(Group):
+    def orbits_dist(self, orbits):
+        pass
+
+    def coords_to_orbit(self, coords):
+        pass
