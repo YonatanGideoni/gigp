@@ -1,22 +1,16 @@
 from abc import ABC, abstractmethod
 
+import torch
+
 
 # TODO - write input/output shapes
 class Group(ABC):
     @abstractmethod
-    def orbits_dist(self, orbits):
-        """Input - orbits [?], output - distances between pairs of orbits [?] """
-        pass
-
-    @abstractmethod
-    def coords_to_orbit(self, coords):
+    def coords2orbit(self, coords):
         """Input - coordinates [?], output - orbit each coord belongs to [?] """
         pass
 
 
 class SO2(Group):
-    def orbits_dist(self, orbits):
-        pass
-
-    def coords_to_orbit(self, coords):
-        pass
+    def coords2orbit(self, coords):
+        return torch.sqrt((coords ** 2).sum(dim=-1))

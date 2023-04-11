@@ -17,7 +17,6 @@ class BaselineConvNet(nn.Module):
         self.fc3 = nn.Linear(84, 1)
 
     def forward(self, x):
-        x = x.unsqueeze(1)
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
         x = torch.flatten(x, 1)
