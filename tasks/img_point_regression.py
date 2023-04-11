@@ -17,7 +17,7 @@ def create_dataset(img_len: int, n_imgs: int, config: TrainConfig) -> DataLoader
 
     imgs[np.arange(n_imgs), coords_y, coords_x] = 1
 
-    labels = np.sqrt(coords_x ** 2 + coords_y ** 2)
+    labels = np.sqrt((coords_x - img_len / 2) ** 2 + (coords_y - img_len / 2) ** 2)
 
     X = torch.Tensor(imgs).to(DEVICE).unsqueeze(1)
     y = torch.tensor(labels).float().unsqueeze(1)
