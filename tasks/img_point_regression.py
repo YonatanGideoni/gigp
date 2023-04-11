@@ -18,8 +18,7 @@ def create_dataset(img_len: int, n_imgs: int, config: TrainConfig) -> DataLoader
     labels = np.sqrt(coords_x ** 2 + coords_y ** 2)
 
     X = torch.Tensor(imgs).to(DEVICE)
-    X = torch.flatten(X, start_dim=1, end_dim=-1)
-    y = torch.tensor(labels)
+    y = torch.tensor(labels).float().unsqueeze(1)
 
     dataset = TensorDataset(X, y)
 
@@ -40,5 +39,5 @@ def main(train_conf: TrainConfig, network=BaselineConvNet(), img_size: int = 20,
 
 
 if __name__ == '__main__':
-    config = TrainConfig(n_epochs=100, lr=1e-3, bs=10, loss=nn.MSELoss())
+    config = TrainConfig(n_epochs=100, lr=1e-2, bs=10, loss=nn.MSELoss())
     main(config)
