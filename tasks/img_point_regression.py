@@ -4,11 +4,10 @@ from torch import nn
 from torch.optim.adam import Adam
 from torch.utils.data import TensorDataset, DataLoader
 
-from architectures.baselines import BaselineConvNet, BaselineMLP
 from architectures.gigp import ImgGIGP
 from consts import DEVICE
 from groups import SO2
-from utils import TrainConfig, train_loop, test_loop
+from utils import TrainConfig, train_loop, test_loop, pixels2coords
 
 
 def create_dataset(img_len: int, n_imgs: int, config: TrainConfig) -> DataLoader:
@@ -27,17 +26,6 @@ def create_dataset(img_len: int, n_imgs: int, config: TrainConfig) -> DataLoader
     data_loader = DataLoader(dataset=dataset, batch_size=config.bs)
 
     return data_loader
-
-
-def pixels2coords(imgs: torch.Tensor):
-    bs, c, h, w = imgs.shape
-
-    # Construct coordinate grid
-    i = torch.linspace(-h / 2., h / 2., h)
-    j = torch.linspace(-w / 2., w / 2., w)
-    coords = torch.stack(torch.meshgrid([i, j]), dim=-1).float()
-
-    return coords
 
 
 def main(train_conf: TrainConfig, img_size: int = 20,

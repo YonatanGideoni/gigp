@@ -3,7 +3,7 @@ import torch
 
 from architectures.gigp import ImgGIGP
 from groups import SO2
-from tasks.img_point_regression import pixels2coords
+from utils import pixels2coords
 
 
 def test_invariance():

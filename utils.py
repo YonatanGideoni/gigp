@@ -41,3 +41,14 @@ def test_loop(dataloader, model, loss_fn: callable, verbose: bool = False) -> fl
         print(f"Avg test loss: {test_loss:>8f} \n")
 
     return test_loss
+
+
+def pixels2coords(imgs: torch.Tensor):
+    bs, c, h, w = imgs.shape
+
+    # Construct coordinate grid
+    i = torch.linspace(-h / 2., h / 2., h)
+    j = torch.linspace(-w / 2., w / 2., w)
+    coords = torch.stack(torch.meshgrid([i, j]), dim=-1).float()
+
+    return coords
