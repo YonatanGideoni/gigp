@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from groupy.garray.garray import GArray
+from architectures.groupy.garray.garray import GArray
 
 
 class MatrixGArray(GArray):
@@ -14,7 +14,7 @@ class MatrixGArray(GArray):
     def __init__(self, data, p='int'):
         data = np.asarray(data)
 
-        if p == 'int' and data.dtype != np.int:
+        if p == 'int' and data.dtype != int:
             raise ValueError('data.dtype must be int when integer parameterization is used.')
 
         if 'mat' not in self.parameterizations and 'hmat' not in self.parameterizations:

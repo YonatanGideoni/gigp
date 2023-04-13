@@ -1,5 +1,5 @@
-from groupy.gconv.chainer_gconv.splitgconv2d import SplitGConv2D
-from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices
+from architectures.groupy.gconv.chainer_gconv.splitgconv2d import SplitGConv2D
+from architectures.groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices
 
 
 class P4ConvZ2(SplitGConv2D):

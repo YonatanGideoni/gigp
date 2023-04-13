@@ -3,9 +3,9 @@ from chainer import cuda, Variable
 
 
 def test_p4_net_equivariance():
-    from groupy.gfunc import Z2FuncArray, P4FuncArray
-    import groupy.garray.C4_array as c4a
-    from groupy.gconv.chainer_gconv.p4_conv import P4ConvZ2, P4ConvP4
+    from architectures.groupy.gfunc import Z2FuncArray, P4FuncArray
+    import architectures.groupy.garray.C4_array as c4a
+    from architectures.groupy.gconv.chainer_gconv.p4_conv import P4ConvZ2, P4ConvP4
 
     im = np.random.randn(1, 1, 11, 11).astype('float32')
     check_equivariance(
@@ -21,9 +21,9 @@ def test_p4_net_equivariance():
 
 
 def test_p4m_net_equivariance():
-    from groupy.gfunc import Z2FuncArray, P4MFuncArray
-    import groupy.garray.D4_array as d4a
-    from groupy.gconv.chainer_gconv.p4m_conv import P4MConvZ2, P4MConvP4M
+    from architectures.groupy.gfunc import Z2FuncArray, P4MFuncArray
+    import architectures.groupy.garray.D4_array as d4a
+    from architectures.groupy.gconv.chainer_gconv.p4m_conv import P4MConvZ2, P4MConvP4M
 
     im = np.random.randn(1, 1, 11, 11).astype('float32')
     check_equivariance(
@@ -39,11 +39,11 @@ def test_p4m_net_equivariance():
 
 
 def test_g_z2_conv_equivariance():
-    from groupy.gfunc import Z2FuncArray, P4FuncArray, P4MFuncArray
-    import groupy.garray.C4_array as c4a
-    import groupy.garray.D4_array as d4a
-    from groupy.gconv.chainer_gconv.p4_conv import P4ConvZ2
-    from groupy.gconv.chainer_gconv.p4m_conv import P4MConvZ2
+    from architectures.groupy.gfunc import Z2FuncArray, P4FuncArray, P4MFuncArray
+    import architectures.groupy.garray.C4_array as c4a
+    import architectures.groupy.garray.D4_array as d4a
+    from architectures.groupy.gconv.chainer_gconv.p4_conv import P4ConvZ2
+    from architectures.groupy.gconv.chainer_gconv.p4m_conv import P4MConvZ2
 
     im = np.random.randn(1, 1, 11, 11).astype('float32')
     check_equivariance(
@@ -64,9 +64,9 @@ def test_g_z2_conv_equivariance():
 
 
 def test_p4_p4_conv_equivariance():
-    from groupy.gfunc import P4FuncArray
-    import groupy.garray.C4_array as c4a
-    from groupy.gconv.chainer_gconv.p4_conv import P4ConvP4
+    from architectures.groupy.gfunc import P4FuncArray
+    import architectures.groupy.garray.C4_array as c4a
+    from architectures.groupy.gconv.chainer_gconv.p4_conv import P4ConvP4
 
     im = np.random.randn(1, 1, 4, 11, 11).astype('float32')
     check_equivariance(
@@ -79,9 +79,9 @@ def test_p4_p4_conv_equivariance():
 
 
 def test_p4m_p4m_conv_equivariance():
-    from groupy.gfunc import P4MFuncArray
-    import groupy.garray.D4_array as d4a
-    from groupy.gconv.chainer_gconv.p4m_conv import P4MConvP4M
+    from architectures.groupy.gfunc import P4MFuncArray
+    import architectures.groupy.garray.D4_array as d4a
+    from architectures.groupy.gconv.chainer_gconv.p4m_conv import P4MConvP4M
 
     im = np.random.randn(1, 1, 8, 11, 11).astype('float32')
     check_equivariance(

@@ -4,7 +4,7 @@ from torch import nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
-from architectures.baselines import NormalCNN
+from architectures.baselines import NormalCNN, GConvNet
 from architectures.gigp import ImgGIGP
 from consts import N_DIGITS
 from datasets.rotmnist import RotatedMNIST
@@ -50,12 +50,21 @@ def normal_cnn(conf: TrainConfig, gigp: bool = False):
     train_model(model, conf)
 
 
+def gconv(conf: TrainConfig, gigp: bool = False):
+    model = GConvNet()
+
+    train_model(model, conf)
+
+
 def main():
     # config = TrainConfig(n_epochs=100, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
     # naive_gigp(config)
 
-    config = TrainConfig(n_epochs=30, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
-    normal_cnn(config, gigp=True)
+    # config = TrainConfig(n_epochs=30, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
+    # normal_cnn(config, gigp=True)
+
+    config = TrainConfig(n_epochs=20, lr=1e-3, bs=64, loss=nn.CrossEntropyLoss())
+    gconv(config)
 
 
 if __name__ == '__main__':

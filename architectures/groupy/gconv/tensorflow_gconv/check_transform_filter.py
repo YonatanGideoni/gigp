@@ -2,10 +2,10 @@
 import numpy as np
 import tensorflow as tf
 
-from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices
-from groupy.gconv.tensorflow_gconv.transform_filter import transform_filter_2d_nchw, transform_filter_2d_nhwc
+from architectures.groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices
+from architectures.groupy.gconv.tensorflow_gconv.transform_filter import transform_filter_2d_nchw, transform_filter_2d_nhwc
 
-from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices,\
+from architectures.groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices,\
     make_d4_z2_indices, make_d4_p4m_indices, flatten_indices
 
 # NOTE: it seems like loading tensorflow and Chainer in the same session is likely to result in problems.
@@ -101,7 +101,7 @@ def tf_trans_filter2(w, inds):
 
 def ch_trans_filter(w, inds):
     from chainer import cuda, Variable
-    from groupy.gconv.chainer_gconv.transform_filter import TransformGFilter
+    from architectures.groupy.gconv.chainer_gconv.transform_filter import TransformGFilter
 
     w_gpu = cuda.to_gpu(w)
     inds_gpu = cuda.to_gpu(inds)

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import FancyArrowPatch
 
-from groupy.gfunc.plot.plot_z2 import plot_z2
+from architectures.groupy.gfunc.plot.plot_z2 import plot_z2
 
 
 # Miniature plot:

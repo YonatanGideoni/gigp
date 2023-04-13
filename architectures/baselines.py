@@ -4,11 +4,10 @@ import torch
 from torch import nn
 
 from architectures.gigp import ImgGIGP
+from architectures.groupy.gconv.pytorch_gconv.pooling import plane_group_spatial_max_pooling
+from architectures.groupy.gconv.pytorch_gconv.splitgconv2d import P4ConvP4, P4ConvZ2
 from consts import N_DIGITS
 from groups import Group
-
-from groupy.gconv.pytorch_gconv.splitgconv2d import P4ConvZ2, P4ConvP4
-from groupy.gconv.pytorch_gconv.pooling import plane_group_spatial_max_pooling
 
 
 # TODO - use/create a baseline that isn't total garbage
@@ -53,6 +52,7 @@ class NormalCNN(nn.Module):
 # pytorch implementation of https://arxiv.org/pdf/1602.07576.pdf,
 # taken from https://github.com/adambielski/pytorch-gconv-experiments/blob/master/mnist/mnist.py
 # requires groupy folder, imported from https://github.com/adambielski/GrouPy
+# TODO - make sure that this is the P4CNN version
 class GConvNet(nn.Module):
     def __init__(self):
         super(GConvNet, self).__init__()

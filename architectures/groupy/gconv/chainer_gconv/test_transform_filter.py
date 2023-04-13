@@ -6,9 +6,9 @@ from chainer import cuda
 # TODO: check that sequential transforms match the application of a composition of transforms: g (h f) = (gh) f
 # TODO: check that applying a transformation and its inverse leaves the signal invariant g^-1 (g f) = f
 
-from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices,\
+from architectures.groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices,\
     make_d4_z2_indices, make_d4_p4m_indices
-from groupy.gconv.chainer_gconv.transform_filter import TransformGFilter
+from architectures.groupy.gconv.chainer_gconv.transform_filter import TransformGFilter
 
 
 def test_transform_grad():

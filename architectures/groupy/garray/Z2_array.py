@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from groupy.garray.garray import GArray
+from architectures.groupy.garray.garray import GArray
 
 
 class Z2Array(GArray):
@@ -14,7 +14,7 @@ class Z2Array(GArray):
 
     def __init__(self, data, p='int'):
         data = np.asarray(data)
-        assert data.dtype == np.int
+        assert data.dtype == int
         self._left_actions[Z2Array] = self.__class__.z2_composition
         super(Z2Array, self).__init__(data, p)
 
@@ -33,7 +33,7 @@ class Z2Array(GArray):
 
 
 def identity(shape=()):
-    e = Z2Array(np.zeros(shape + (2,), dtype=np.int), 'int')
+    e = Z2Array(np.zeros(shape + (2,), dtype=int), 'int')
     return e
 
 
@@ -45,13 +45,13 @@ def rand(minu, maxu, minv, maxv, size=()):
 
 
 def u_range(start=-1, stop=2, step=1):
-    m = np.zeros((stop - start, 2), dtype=np.int)
+    m = np.zeros((stop - start, 2), dtype=int)
     m[:, 0] = np.arange(start, stop, step)
     return Z2Array(m)
 
 
 def v_range(start=-1, stop=2, step=1):
-    m = np.zeros((stop - start, 2), dtype=np.int)
+    m = np.zeros((stop - start, 2), dtype=int)
     m[:, 1] = np.arange(start, stop, step)
     return Z2Array(m)
 

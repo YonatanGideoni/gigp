@@ -1,9 +1,9 @@
 
 import tensorflow as tf
 
-from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices,\
+from architectures.groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices,\
     make_d4_z2_indices, make_d4_p4m_indices, flatten_indices
-from groupy.gconv.tensorflow_gconv.transform_filter import transform_filter_2d_nchw, transform_filter_2d_nhwc
+from architectures.groupy.gconv.tensorflow_gconv.transform_filter import transform_filter_2d_nchw, transform_filter_2d_nhwc
 
 
 def gconv2d(input, filter, strides, padding, gconv_indices, gconv_shape_info,

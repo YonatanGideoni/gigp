@@ -5,8 +5,8 @@ from chainer import cuda
 from chainer import function
 from chainer.utils import type_check
 
-from groupy.gconv.chainer_gconv.kernels.integer_indexing_cuda_kernel import grad_index_group_func_kernel
-from groupy.gconv.chainer_gconv.kernels.integer_indexing_cuda_kernel import index_group_func_kernel
+from architectures.groupy.gconv.chainer_gconv.kernels.integer_indexing_cuda_kernel import grad_index_group_func_kernel
+from architectures.groupy.gconv.chainer_gconv.kernels.integer_indexing_cuda_kernel import index_group_func_kernel
 
 
 class TransformGFilter(function.Function):

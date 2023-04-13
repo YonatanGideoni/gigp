@@ -7,7 +7,7 @@ import chainer.functions as F
 from chainer import Variable
 from chainer.utils import type_check
 
-from groupy.gconv.chainer_gconv.transform_filter import TransformGFilter
+from architectures.groupy.gconv.chainer_gconv.transform_filter import TransformGFilter
 
 # Implementation note:
 # The standard operation computed by chainer's Convolution2D is the correlation with filter psi on the right:

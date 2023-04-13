@@ -2,12 +2,12 @@
 import numpy as np
 import tensorflow as tf
 
-from groupy.gconv.tensorflow_gconv.splitgconv2d import gconv2d_util, gconv2d
-from groupy.gfunc.z2func_array import Z2FuncArray
-from groupy.gfunc.p4func_array import P4FuncArray
-from groupy.gfunc.p4mfunc_array import P4MFuncArray
-import groupy.garray.C4_array as C4a
-import groupy.garray.D4_array as D4a
+from architectures.groupy.gconv.tensorflow_gconv.splitgconv2d import gconv2d_util, gconv2d
+from architectures.groupy.gfunc.z2func_array import Z2FuncArray
+from architectures.groupy.gfunc.p4func_array import P4FuncArray
+from architectures.groupy.gfunc.p4mfunc_array import P4MFuncArray
+import architectures.groupy.garray.C4_array as C4a
+import architectures.groupy.garray.D4_array as D4a
 
 # NOTE: it seems like loading tensorflow and Chainer in the same session is likely to result in problems.
 # I've disabled these tests for now (renamed to check_... instead of test_... so they are ignored by nose)
