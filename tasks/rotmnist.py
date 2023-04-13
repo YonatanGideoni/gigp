@@ -4,7 +4,9 @@ from torch import nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
+from architectures.baselines import NormalCNN
 from architectures.gigp import ImgGIGP
+from consts import N_DIGITS
 from datasets.rotmnist import RotatedMNIST
 from groups import SO2
 from utils import TrainConfig, train_loop, test_loop, pixels2coords
@@ -17,27 +19,49 @@ def get_dataset(conf: TrainConfig, train: bool = True, root=os.path.join('..', '
     return DataLoader(ds, batch_size=conf.bs, shuffle=True)
 
 
-def naive_gigp(conf: TrainConfig, n_digits: int = 10):
+def train_model(model: nn.Module, train_data, test_data, conf: TrainConfig):
+    optimiser = Adam(model.parameters(), lr=conf.lr)
+    for epoch in range(conf.n_epochs):
+        train_loop(train_data, model, conf.loss, optimiser)
+        test_loop(test_data, model, conf.loss, verbose=True, classification=True)
+
+    print('Final accuracy on train and test sets')
+    print('Train:')
+    test_loop(train_data, model, conf.loss, verbose=True, classification=True)
+    print('Test:')
+    test_loop(test_data, model, conf.loss, verbose=True, classification=True)
+
+
+def naive_gigp(conf: TrainConfig):
     # try and predict digits using only a GIGP layer
     train_data = get_dataset(conf)
     test_data = get_dataset(conf, train=False)
 
     example_imgs = next(iter(train_data))[0]
     coords = pixels2coords(example_imgs)
-    network = ImgGIGP(group=SO2(), coords=coords, in_dim=1, out_dim=n_digits)
+    model = ImgGIGP(group=SO2(), coords=coords, in_dim=1, out_dim=N_DIGITS)
 
-    optimiser = Adam(network.parameters(), lr=conf.lr)
-    for epoch in range(config.n_epochs):
-        train_loop(train_data, network, config.loss, optimiser)
-        test_loop(test_data, network, config.loss, verbose=True, classification=True)
+    train_model(model, train_data, test_data, conf)
 
-    print('Final accuracy on train and test sets')
-    print('Train:')
-    test_loop(train_data, network, config.loss, verbose=True, classification=True)
-    print('Test:')
-    test_loop(test_data, network, config.loss, verbose=True, classification=True)
+
+def normal_cnn(conf: TrainConfig, gigp: bool = False):
+    train_data = get_dataset(conf)
+    test_data = get_dataset(conf, train=False)
+
+    example_imgs = next(iter(train_data))[0]
+    coords = pixels2coords(example_imgs)
+    model = NormalCNN(group=SO2(), coords=coords, use_gigp=gigp)
+
+    train_model(model, train_data, test_data, conf)
+
+
+def main():
+    # config = TrainConfig(n_epochs=100, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
+    # naive_gigp(config)
+
+    config = TrainConfig(n_epochs=30, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
+    normal_cnn(config)
 
 
 if __name__ == '__main__':
-    config = TrainConfig(n_epochs=100, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
-    naive_gigp(config)
+    main()
