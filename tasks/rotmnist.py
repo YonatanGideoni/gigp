@@ -19,7 +19,10 @@ def get_dataset(conf: TrainConfig, train: bool = True, root=os.path.join('..', '
     return DataLoader(ds, batch_size=conf.bs, shuffle=True)
 
 
-def train_model(model: nn.Module, train_data, test_data, conf: TrainConfig):
+def train_model(model: nn.Module, conf: TrainConfig):
+    train_data = get_dataset(conf)
+    test_data = get_dataset(conf, train=False)
+
     optimiser = Adam(model.parameters(), lr=conf.lr)
     for epoch in range(conf.n_epochs):
         train_loop(train_data, model, conf.loss, optimiser)
@@ -34,25 +37,17 @@ def train_model(model: nn.Module, train_data, test_data, conf: TrainConfig):
 
 def naive_gigp(conf: TrainConfig):
     # try and predict digits using only a GIGP layer
-    train_data = get_dataset(conf)
-    test_data = get_dataset(conf, train=False)
-
-    example_imgs = next(iter(train_data))[0]
-    coords = pixels2coords(example_imgs)
+    coords = pixels2coords(h=28, w=28)
     model = ImgGIGP(group=SO2(), coords=coords, in_dim=1, out_dim=N_DIGITS)
 
-    train_model(model, train_data, test_data, conf)
+    train_model(model, conf)
 
 
 def normal_cnn(conf: TrainConfig, gigp: bool = False):
-    train_data = get_dataset(conf)
-    test_data = get_dataset(conf, train=False)
-
-    example_imgs = next(iter(train_data))[0]
-    coords = pixels2coords(example_imgs)
+    coords = pixels2coords(h=12, w=12)
     model = NormalCNN(group=SO2(), coords=coords, use_gigp=gigp)
 
-    train_model(model, train_data, test_data, conf)
+    train_model(model, conf)
 
 
 def main():
@@ -60,7 +55,7 @@ def main():
     # naive_gigp(config)
 
     config = TrainConfig(n_epochs=30, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
-    normal_cnn(config)
+    normal_cnn(config, gigp=True)
 
 
 if __name__ == '__main__':

@@ -53,9 +53,7 @@ def test_loop(dataloader, model, loss_fn: callable, classification: bool = False
     return test_loss
 
 
-def pixels2coords(imgs: torch.Tensor):
-    bs, c, h, w = imgs.shape
-
+def pixels2coords(h: int, w: int):
     # Construct coordinate grid
     i = torch.linspace(-h / 2., h / 2., h)
     j = torch.linspace(-w / 2., w / 2., w)
