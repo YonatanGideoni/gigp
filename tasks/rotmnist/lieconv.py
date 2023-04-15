@@ -9,10 +9,10 @@ from functools import partial
 from torch.optim import Adam
 from oil.tuning.args import argupdated_config
 import copy
-import lie_conv.lieGroups as lieGroups
-import lie_conv.lieConv as lieConv
-from lie_conv.lieConv import ImgLieResnet
-from lie_conv.datasets import MnistRotDataset
+import architectures.LieConv.lie_conv.lieGroups as lieGroups
+import architectures.LieConv.lie_conv.lieConv as lieConv
+from architectures.LieConv.lie_conv.lieConv import ImgLieResnet
+from architectures.LieConv.lie_conv.datasets import MnistRotDataset
 
 
 def makeTrainer(*, dataset=MnistRotDataset, network=ImgLieResnet, num_epochs=100,
@@ -37,9 +37,11 @@ def makeTrainer(*, dataset=MnistRotDataset, network=ImgLieResnet, num_epochs=100
     return trainer(model, dataloaders, opt_constr, lr_sched, **trainer_config)
 
 
-# python examples/train_img.py --num_epochs=500 --trainer_config "{'log_suffix':'mnistSO2'}" \
-#   --net_config "{'k':128,'total_ds':.1,'fill':.1,'nbhd':25,'group':SO2(.2), 'gigp': True}" \
-#   --bs 25 --lr .003 --split "{'train':12000}" --aug=True
+"""
+python examples/train_img.py --num_epochs=500 --trainer_config "{'log_suffix':'mnistSO2'}" \
+  --net_config "{'k':128,'total_ds':.1,'fill':.1,'nbhd':25,'group':SO2(.2), 'gigp': True}" \
+  --bs 25 --lr .003 --split "{'train':12000}" --aug=True
+"""
 if __name__ == "__main__":
     Trial = train_trial(makeTrainer)
     defaults = copy.deepcopy(makeTrainer.__kwdefaults__)
