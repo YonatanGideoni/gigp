@@ -50,12 +50,6 @@ def normal_cnn(conf: TrainConfig, gigp: bool = False):
     train_model(model, conf)
 
 
-def gconv(conf: TrainConfig, gigp: bool = False):
-    model = GConvNet()
-
-    train_model(model, conf)
-
-
 def main():
     # config = TrainConfig(n_epochs=100, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
     # naive_gigp(config)
@@ -63,8 +57,7 @@ def main():
     # config = TrainConfig(n_epochs=30, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
     # normal_cnn(config, gigp=True)
 
-    config = TrainConfig(n_epochs=20, lr=1e-3, bs=64, loss=nn.CrossEntropyLoss())
-    gconv(config)
+    pass
 
 
 if __name__ == '__main__':
