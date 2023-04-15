@@ -6,10 +6,10 @@ from torch_geometric.nn import SumAggregation
 from groups import Group
 
 
-class ImgGIGP(nn.Module):
+class GIGP(nn.Module):
     def __init__(self, group: Group, coords: np.ndarray, in_dim: int, orbs_agg_dist: float = 0,
                  hidden_dim: int = 16, out_dim: int = 1):
-        super(ImgGIGP, self).__init__()
+        super(GIGP, self).__init__()
 
         self.orb_mlp = nn.Sequential(nn.Linear(in_dim, hidden_dim), nn.ReLU(),
                                      nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
@@ -26,7 +26,14 @@ class ImgGIGP(nn.Module):
         self.orbits = unique_orbs
 
     def forward(self, x):
-        agg_orbs = self.agg(x.flatten(start_dim=-2), index=self.agg_orbs_inds, dim=-1)
+        agg_orbs = self.agg(x, index=self.agg_orbs_inds, dim=-1)
         transf_orbs = self.orb_mlp(agg_orbs.permute(0, 2, 1))
 
         return transf_orbs.sum(dim=-2)
+
+
+class ImgGIGP(GIGP):
+    def forward(self, x):
+        x = x.flatten(start_dim=-2)
+
+        return super().forward(x)
