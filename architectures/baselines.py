@@ -4,11 +4,12 @@ import torch
 from torch import nn
 
 from architectures.LieConv.lie_conv.lieConv import BottleBlock, Swish, GlobalPool, LieConv
+from architectures.LieConv.lie_conv.lieGroups import SO2
 from architectures.LieConv.lie_conv.masked_batchnorm import MaskBatchNormNd
 from architectures.LieConv.lie_conv.utils import Named, Pass, Expression
 from architectures.gigp import ImgGIGP
 from consts import N_DIGITS
-from groups import Group, SO2
+from groups import Group
 
 
 # TODO - use/create a baseline that isn't total garbage
@@ -98,7 +99,7 @@ class GIGPImgLieResnet(LieResNet):
     """ Lie Conv architecture specialized to images. Uses scaling rule to determine channel
          and downsampling scaling. Same arguments as LieResNet"""
 
-    def __init__(self, chin=1, total_ds=1 / 64, num_layers=6, group=T(2), fill=1 / 32, k=256,
+    def __init__(self, chin=1, total_ds=1 / 64, num_layers=6, group=SO2(), fill=1 / 32, k=256,
                  knn=False, nbhd=12, num_targets=10, increase_channels=True, **kwargs):
         ds_frac = (total_ds) ** (1 / num_layers)
         fill = [fill / ds_frac ** i for i in range(num_layers)]
