@@ -3,13 +3,13 @@ import torch
 import torch.nn as nn
 from oil.utils.utils import Eval
 from oil.model_trainers import Trainer
-from lie_conv.hamiltonian import HamiltonianDynamics,EuclideanK
-from lie_conv.lieConv import pConvBNrelu, PointConv, Pass, Swish, LieResNet
-from lie_conv.moleculeTrainer import BottleBlock, GlobalPool
-from lie_conv.utils import Expression, export, Named
+from architectures.LieConv.lie_conv.hamiltonian import HamiltonianDynamics,EuclideanK
+from architectures.LieConv.lie_conv.lieConv import pConvBNrelu, PointConv, Pass, Swish, LieResNet
+from architectures.LieConv.lie_conv.moleculeTrainer import BottleBlock, GlobalPool
+from architectures.LieConv.lie_conv.utils import Expression, export, Named
 import numpy as np
 from torchdiffeq import odeint
-from lie_conv.lieGroups import T
+from architectures.LieConv.lie_conv.lieGroups import T
 
 class Partial(nn.Module):
     def __init__(self,module,*args,**kwargs):

@@ -1,11 +1,11 @@
 import torch
-from lie_conv.datasets import QM9datasets
+from architectures.LieConv.lie_conv.datasets import QM9datasets
 from moleculeTrainer import MoleculeTrainer,MolecLieResNet
 from moleculeTrainer import MolecResNet
 from oil.utils.utils import LoaderTo
 from corm_data.collate import collate_fn
 from torch.utils.data import DataLoader
-from lie_conv.lieGroups import norm, SO3
+from architectures.LieConv.lie_conv.lieGroups import norm, SO3
 import unittest
 import numpy as np
 

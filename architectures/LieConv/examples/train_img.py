@@ -9,10 +9,10 @@ from functools import partial
 from torch.optim import Adam
 from oil.tuning.args import argupdated_config
 import copy
-import lie_conv.lieGroups as lieGroups
-import lie_conv.lieConv as lieConv
-from lie_conv.lieConv import ImgLieResnet
-from lie_conv.datasets import MnistRotDataset
+import architectures.LieConv.lie_conv.lieGroups as lieGroups
+import architectures.LieConv.lie_conv.lieConv as lieConv
+from architectures.LieConv.lie_conv.lieConv import ImgLieResnet
+from architectures.LieConv.lie_conv.datasets import MnistRotDataset
 
 
 def makeTrainer(*, dataset=MnistRotDataset, network=ImgLieResnet, num_epochs=100,

@@ -9,12 +9,12 @@ from functools import partial
 from torch.optim import Adam
 from oil.tuning.args import argupdated_config
 import copy
-import lie_conv.moleculeTrainer as moleculeTrainer
-import lie_conv.lieGroups as lieGroups
-from lie_conv.lieGroups import T,Trivial,SE3,SO3
-import lie_conv.lieConv as lieConv
-from lie_conv.lieConv import ImgLieResnet
-from lie_conv.datasets import MnistRotDataset
+import architectures.LieConv.lie_conv.moleculeTrainer as moleculeTrainer
+import architectures.LieConv.lie_conv.lieGroups as lieGroups
+from architectures.LieConv.lie_conv.lieGroups import T,Trivial,SE3,SO3
+import architectures.LieConv.lie_conv.lieConv as lieConv
+from architectures.LieConv.lie_conv.lieConv import ImgLieResnet
+from architectures.LieConv.lie_conv.datasets import MnistRotDataset
 from examples.train_molec import makeTrainer,Trial
 from oil.tuning.study import Study
 

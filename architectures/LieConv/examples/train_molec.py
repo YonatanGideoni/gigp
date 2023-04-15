@@ -5,12 +5,12 @@ from oil.utils.utils import LoaderTo, islice, cosLr, FixedNumpySeed
 from oil.tuning.args import argupdated_config
 from oil.tuning.study import train_trial
 from oil.utils.parallel import try_multigpu_parallelize
-from lie_conv.datasets import QM9datasets
+from architectures.LieConv.lie_conv.datasets import QM9datasets
 from corm_data.collate import collate_fn
-from lie_conv.moleculeTrainer import MolecLieResNet, MoleculeTrainer
+from architectures.LieConv.lie_conv.moleculeTrainer import MolecLieResNet, MoleculeTrainer
 from oil.datasetup.datasets import split_dataset
-import lie_conv.moleculeTrainer as moleculeTrainer
-import lie_conv.lieGroups as lieGroups
+import architectures.LieConv.lie_conv.moleculeTrainer as moleculeTrainer
+import architectures.LieConv.lie_conv.lieGroups as lieGroups
 import functools
 import copy
 

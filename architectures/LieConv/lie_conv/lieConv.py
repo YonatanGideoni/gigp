@@ -20,10 +20,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from lie_conv.utils import Expression,export,Named, Pass
-from lie_conv.utils import FarthestSubsample, knn_point, index_points
-from lie_conv.lieGroups import T,SO2,SO3,SE2,SE3, norm
-from lie_conv.masked_batchnorm import MaskBatchNormNd
+from architectures.LieConv.lie_conv.utils import Expression,export,Named, Pass
+from architectures.LieConv.lie_conv.utils import FarthestSubsample, knn_point, index_points
+from architectures.LieConv.lie_conv.lieGroups import T,SO2,SO3,SE2,SE3, norm
+from architectures.LieConv.lie_conv.masked_batchnorm import MaskBatchNormNd
 
 
 @export

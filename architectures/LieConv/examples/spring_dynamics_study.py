@@ -7,11 +7,11 @@ import numpy as np
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 from oil.utils.utils import LoaderTo, islice, FixedNumpySeed, cosLr
-from lie_conv.datasets import SpringDynamics
-from lie_conv.dynamicsTrainer import IntegratedDynamicsTrainer,FCHamNet, RawDynamicsNet, LieResNetT2, HLieResNet
-from lie_conv.liegroups import T, SO2, Trivial
+from architectures.LieConv.lie_conv.datasets import SpringDynamics
+from architectures.LieConv.lie_conv.dynamicsTrainer import IntegratedDynamicsTrainer,FCHamNet, RawDynamicsNet, LieResNetT2, HLieResNet
+from architectures.LieConv.lie_conv.liegroups import T, SO2, Trivial
 from graphnets import OGN,HOGN, VOGN
-from lie_conv.dynamics_trial import DynamicsTrial
+from architectures.LieConv.lie_conv.dynamics_trial import DynamicsTrial
 from oil.tuning.configGenerator import sample_config, flatten_dict,grid_iter
 import os
 

@@ -10,8 +10,8 @@ import os
 from torch.utils.data import Dataset
 from .utils import Named, export, Expression, FixedNumpySeed, RandomZrotation, GaussianNoise
 from oil.datasetup.datasets import EasyIMGDataset
-from lie_conv.hamiltonian import HamiltonianDynamics, KeplerH, SpringH
-from lie_conv.lieGroups import SO3
+from architectures.LieConv.lie_conv.hamiltonian import HamiltonianDynamics, KeplerH, SpringH
+from architectures.LieConv.lie_conv.lieGroups import SO3
 from torchdiffeq import odeint_adjoint as odeint
 from corm_data.utils import initialize_datasets
 import torchvision

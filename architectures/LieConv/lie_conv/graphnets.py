@@ -3,9 +3,9 @@ import torch.nn as nn
 from torch.nn import Sequential as Seq, Linear as Lin
 from torch_scatter import scatter_add
 from torch_geometric.nn import MetaLayer
-from lie_conv.utils import Named, export
-from lie_conv.hamiltonian import HamiltonianDynamics,EuclideanK
-from lie_conv.lieConv import Swish
+from architectures.LieConv.lie_conv.utils import Named, export
+from architectures.LieConv.lie_conv.hamiltonian import HamiltonianDynamics,EuclideanK
+from architectures.LieConv.lie_conv.lieConv import Swish
 
 
 class EdgeModel(torch.nn.Module):

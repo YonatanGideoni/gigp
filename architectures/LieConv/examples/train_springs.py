@@ -6,18 +6,18 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 from oil.utils.utils import LoaderTo, islice, FixedNumpySeed, cosLr
-from lie_conv.datasets import SpringDynamics
-from lie_conv import datasets
-from lie_conv.dynamicsTrainer import IntegratedDynamicsTrainer, FC, HLieResNet
+from architectures.LieConv.lie_conv.datasets import SpringDynamics
+from architectures.LieConv.lie_conv import datasets
+from architectures.LieConv.lie_conv.dynamicsTrainer import IntegratedDynamicsTrainer, FC, HLieResNet
 
-import lie_conv.lieGroups as lieGroups
-from lie_conv.lieGroups import Tx
-from lie_conv import dynamicsTrainer
-#from lie_conv.dynamics_trial import DynamicsTrial
+import architectures.LieConv.lie_conv.lieGroups as lieGroups
+from architectures.LieConv.lie_conv.lieGroups import Tx
+from architectures.LieConv.lie_conv import dynamicsTrainer
+#from architectures.LieConv.lie_conv.dynamics_trial import DynamicsTrial
 try:
-    import lie_conv.graphnets as graphnets
+    import architectures.LieConv.lie_conv.graphnets as graphnets
 except ImportError:
-    import lie_conv.lieConv as graphnets
+    import architectures.LieConv.lie_conv.lieConv as graphnets
     warnings.warn('Failed to import graphnets. Please install using \
                 `pip install .[GN]` for this functionality', ImportWarning)
 

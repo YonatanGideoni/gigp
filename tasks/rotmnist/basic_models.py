@@ -12,7 +12,7 @@ from groups import SO2
 from utils import TrainConfig, train_loop, test_loop, pixels2coords
 
 
-def get_dataset(conf: TrainConfig, train: bool = True, root=os.path.join('..', 'datasets', 'data')) -> DataLoader:
+def get_dataset(conf: TrainConfig, train: bool = True, root=os.path.join('../..', 'datasets', 'data')) -> DataLoader:
     # train=train or test set, no built-in validation set
     ds = RotatedMNIST(root=root, partition="train" if train else "validation", augment="None")
 
