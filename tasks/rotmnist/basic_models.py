@@ -4,7 +4,7 @@ from torch import nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
-from architectures.baselines import NormalCNN, GConvNet
+from architectures.baselines import NormalCNN
 from architectures.gigp import ImgGIGP
 from consts import N_DIGITS
 from datasets.rotmnist import RotatedMNIST
