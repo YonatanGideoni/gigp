@@ -1,10 +1,7 @@
-from functools import partial
-
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch import nn, vmap
-from torch_geometric.nn import SumAggregation
+from torch import nn
 
 from architectures.LieConv.lie_conv.lieConv import BottleBlock, Swish, GlobalPool, LieConv
 from architectures.LieConv.lie_conv.lieGroups import SO2
@@ -115,7 +112,7 @@ class LieResNet(nn.Module, metaclass=Named):
         conv = lambda ki, ko, fill: LieConv(ki, ko, mc_samples=nbhd, ds_frac=ds_frac, bn=bn, act=act, mean=mean,
                                             group=group, fill=fill, cache=cache, knn=knn, **kwargs)
         pooling = (GlobalPool(mean=mean) if pool else Expression(lambda x: x[1])) if not gigp else \
-            LieConvGIGP(in_dim=num_outputs, out_dim=num_outputs)
+            LieConvGIGP(in_dim=num_outputs, out_dim=num_outputs, mean=mean)
         self.net = nn.Sequential(
             Pass(nn.Linear(chin, k[0]), dim=1),  # embedding layer
             *[BottleBlock(k[i], k[i + 1], conv, bn=bn, act=act, fill=fill[i]) for i in range(num_layers)],
