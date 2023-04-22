@@ -1,7 +1,10 @@
+from functools import partial
+
 import numpy as np
-import torch.nn.functional as F
 import torch
-from torch import nn
+import torch.nn.functional as F
+from torch import nn, vmap
+from torch_geometric.nn import SumAggregation
 
 from architectures.LieConv.lie_conv.lieConv import BottleBlock, Swish, GlobalPool, LieConv
 from architectures.LieConv.lie_conv.lieGroups import SO2
@@ -51,6 +54,41 @@ class NormalCNN(nn.Module):
         return x
 
 
+# FIXME - make orbs_agg_dist do something
+# TODO - create unit tests (eg. gives a consistent result when the mlp is set to the identity)
+class LieConvGIGP(nn.Module):
+    def __init__(self, in_dim: int, orbs_agg_dist: float = 0,
+                 hidden_dim: int = 16, out_dim: int = 1, mean: bool = False):
+        super().__init__()
+        self.orb_mlp = nn.Sequential(nn.Linear(in_dim, hidden_dim), nn.ReLU(),
+                                     nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
+                                     nn.Linear(hidden_dim, out_dim))
+        self.dist_func = SO2(alpha=0).distance
+
+        self.mean = mean
+
+    # TODO - make sure you're summing the correct orbits
+    def forward(self, x):
+        """x [xyz (bs,n,d), vals (bs,n,c), mask (bs,n)]"""
+        if len(x) == 2: return x[1].mean(1)
+        coords, vals, mask = x
+        masked_vals = torch.where(mask.unsqueeze(-1), vals, torch.zeros_like(vals))
+
+        bs = coords.shape[0]
+        unique_orbs = torch.unique(coords[:, :, 1, 1])
+        # orbs_mask shape: [bs, coords.shape[1], n_orbs]
+        orbs_mask = coords[:, :, 1, 1].unsqueeze(-1) == unique_orbs.repeat(bs, coords.shape[1], 1)
+        exp_vals = masked_vals.unsqueeze(-2)
+        masked_orbs = torch.where(orbs_mask.unsqueeze(-1), exp_vals, torch.zeros_like(exp_vals))
+        agg_orbs = masked_orbs.sum(dim=1) if not self.mean else masked_orbs.mean(dim=1)
+
+        empty_orbs_mask = agg_orbs.sum(dim=-1) == 0
+        transf_orbs = self.orb_mlp(agg_orbs)
+        masked_transf_orbs = torch.where(~empty_orbs_mask.unsqueeze(-1), transf_orbs, torch.zeros_like(transf_orbs))
+
+        return masked_transf_orbs.sum(dim=1) if not self.mean else masked_transf_orbs.mean(dim=1)
+
+
 # copies ImgLieResnet with GIGP optionally appended to it instead of global maxpooling
 class LieResNet(nn.Module, metaclass=Named):
     """ Generic LieConv architecture from Fig 5. Relevant Arguments:
@@ -76,8 +114,8 @@ class LieResNet(nn.Module, metaclass=Named):
             k = [k] * (num_layers + 1)
         conv = lambda ki, ko, fill: LieConv(ki, ko, mc_samples=nbhd, ds_frac=ds_frac, bn=bn, act=act, mean=mean,
                                             group=group, fill=fill, cache=cache, knn=knn, **kwargs)
-        # TODO - implement GIGP
-        pooling = (GlobalPool(mean=mean) if pool else Expression(lambda x: x[1])) if not gigp else 0
+        pooling = (GlobalPool(mean=mean) if pool else Expression(lambda x: x[1])) if not gigp else \
+            LieConvGIGP(in_dim=num_outputs, out_dim=num_outputs)
         self.net = nn.Sequential(
             Pass(nn.Linear(chin, k[0]), dim=1),  # embedding layer
             *[BottleBlock(k[i], k[i + 1], conv, bn=bn, act=act, fill=fill[i]) for i in range(num_layers)],

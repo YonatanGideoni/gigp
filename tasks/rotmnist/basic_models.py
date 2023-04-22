@@ -51,13 +51,11 @@ def normal_cnn(conf: TrainConfig, gigp: bool = False):
 
 
 def main():
-    # config = TrainConfig(n_epochs=100, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
-    # naive_gigp(config)
+    config = TrainConfig(n_epochs=100, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
+    naive_gigp(config)
 
     # config = TrainConfig(n_epochs=30, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
     # normal_cnn(config, gigp=True)
-
-    pass
 
 
 if __name__ == '__main__':
