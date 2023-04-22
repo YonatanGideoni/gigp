@@ -19,6 +19,8 @@ def makeTrainer(*, dataset=MnistRotDataset, network=GIGPImgLieResnet, num_epochs
                 bs=50, lr=3e-3, aug=True, optim=Adam, device='cuda', trainer=Classifier,
                 split={'train': 12000}, small_test=False, net_config={}, opt_config={},
                 trainer_config={'log_dir': None}):
+    print(f'GIGP:{net_config["gigp"]}')
+
     # Prep the datasets splits, model, and dataloaders
     datasets = split_dataset(dataset(f'~/datasets/{dataset}/'), splits=split)
     datasets['test'] = dataset(f'~/datasets/{dataset}/', train=False)
