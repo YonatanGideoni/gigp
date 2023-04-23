@@ -57,7 +57,7 @@ class LieConvGIGP(nn.Module):
     def __init__(self, in_dim: int, orbs_agg_dist: float = 0,
                  hidden_dim: int = 16, out_dim: int = 1, mean: bool = False):
         super().__init__()
-        self.orb_mlp = nn.Sequential(nn.Linear(in_dim, hidden_dim), nn.ReLU(),
+        self.orb_mlp = nn.Sequential(nn.Linear(in_dim + 1, hidden_dim), nn.ReLU(),
                                      nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
                                      nn.Linear(hidden_dim, out_dim))
         self.dist_func = SO2(alpha=0).distance
@@ -77,6 +77,10 @@ class LieConvGIGP(nn.Module):
         orbs_mask = coords[:, :, 1, 1].unsqueeze(-1) == unique_orbs.repeat(bs, coords.shape[1], 1)
         exp_vals = masked_vals.unsqueeze(-2)
         masked_orbs = torch.where(orbs_mask.unsqueeze(-1), exp_vals, torch.zeros_like(exp_vals))
+
+        # TODO - make there be a condition for adding this orbit data, be explicit
+        masked_orbs = torch.cat([masked_orbs, unique_orbs.expand(bs, masked_orbs.shape[1], -1)[:, :, :, None]], dim=-1)
+
         agg_orbs = masked_orbs.sum(dim=1) if not self.mean else masked_orbs.mean(dim=1)
 
         empty_orbs_mask = agg_orbs.sum(dim=-1) == 0
