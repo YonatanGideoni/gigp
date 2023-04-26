@@ -41,7 +41,7 @@ def makeTrainer(*, dataset=MnistRotDataset, network=GIGPImgLieResnet, num_epochs
 
 """
 python gigp/tasks/rotmnist/lieconv.py --num_epochs=500 --trainer_config "{'log_suffix':'mnistSO2'}" \
-  --net_config "{'k':128,'total_ds':.1,'fill':.1,'nbhd':25,'group':SO2(.2), 'gigp': True}" \
+  --net_config "{'k':128,'total_ds':.1,'fill':.1,'nbhd':25,'group':SO2(.2), 'gigp': True, 'use_orbits_data': True}" \
   --bs 25 --lr .003 --split "{'train':12000}" --aug=True
 """
 if __name__ == "__main__":
