@@ -7,6 +7,7 @@ from torch.optim import Optimizer
 
 @dataclass
 class TrainConfig:
+    run_name: str
     n_epochs: int
     lr: float
     bs: int
@@ -14,6 +15,8 @@ class TrainConfig:
 
 
 def train_loop(dataloader, model: nn, loss_fn: callable, optimizer: Optimizer):
+    tot_loss = 0
+
     for batch, (X, y) in enumerate(dataloader):
         # Compute prediction and loss
         pred = model(X)
@@ -23,6 +26,10 @@ def train_loop(dataloader, model: nn, loss_fn: callable, optimizer: Optimizer):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
+        tot_loss += loss.item()
+
+    return tot_loss / (batch + 1)
 
 
 def test_loop(dataloader, model, loss_fn: callable, classification: bool = False, verbose: bool = False) -> float:
@@ -39,10 +46,10 @@ def test_loop(dataloader, model, loss_fn: callable, classification: bool = False
             if classification:
                 tot_samples += y.shape[0]
                 correct_labels += (pred.max(1).indices == y).sum().item()
-            else:
-                test_loss += loss_fn(pred, y).item()
+            test_loss += loss_fn(pred, y).item()
 
     test_loss /= num_batches
+    accuracy = correct_labels / max(tot_samples, 1)
 
     if verbose:
         if classification:
@@ -50,7 +57,7 @@ def test_loop(dataloader, model, loss_fn: callable, classification: bool = False
         else:
             print(f"Avg test loss: {test_loss:>8f} \n")
 
-    return test_loss
+    return test_loss, accuracy
 
 
 def pixels2coords(h: int, w: int):
