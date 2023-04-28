@@ -1,3 +1,4 @@
+import datetime
 import os.path
 from dataclasses import asdict
 
@@ -8,7 +9,7 @@ from torch.utils.data import DataLoader
 
 from architectures.baselines import NormalCNN
 from architectures.gigp import ImgGIGP
-from consts import N_DIGITS, PROJ_NAME
+from consts import N_DIGITS, PROJ_NAME, ENT_NAME
 from datasets.rotmnist import RotatedMNIST
 from groups import SO2
 from utils import TrainConfig, train_loop, test_loop, pixels2coords
@@ -24,9 +25,9 @@ def get_dataset(conf: TrainConfig, train: bool = True, root=os.path.join('../..'
 def train_model(model: nn.Module, conf: TrainConfig):
     wandb.login()
 
-    run = wandb.init(
+    wandb.init(
         project=PROJ_NAME,
-        enity=ENT_NAME,
+        entity=ENT_NAME,
         name=conf.run_name,
         config=asdict(conf))
 
@@ -40,7 +41,7 @@ def train_model(model: nn.Module, conf: TrainConfig):
 
         wandb.log({'epoch': epoch, 'train_loss': train_loss, 'test_loss': test_loss, 'test_acc': test_acc})
 
-    wand.finish()
+    wandb.finish()
 
     print('Final accuracy on train and test sets')
     print('Train:')
@@ -68,8 +69,12 @@ def main():
     # config = TrainConfig(n_epochs=100, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
     # naive_gigp(config)
 
-    config = TrainConfig(n_epochs=30, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss())
-    normal_cnn(config, gigp=True)
+    gigp = True
+    run_time = datetime.datetime.now()
+    config = TrainConfig(n_epochs=30, lr=1e-4, bs=64, loss=nn.CrossEntropyLoss(),
+                         run_name=f'naive_cnn_{"no_" * (not gigp)}gigp_{run_time.month}_'
+                                  f'{run_time.day}_{run_time.hour}_{run_time.minute}_{run_time.second}')
+    normal_cnn(config, gigp=gigp)
 
 
 if __name__ == '__main__':
