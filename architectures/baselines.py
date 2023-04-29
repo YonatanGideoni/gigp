@@ -66,12 +66,12 @@ class LieConvGIGP(nn.Module):
         self.orbs_agg_dist = orbs_agg_dist
 
         if agg == 'sum':
-            self.agg = lambda x: x.sum(dim=1)
+            self.orbs_aggregator = lambda x: x.sum(dim=1)
         elif agg == 'mean':
-            self.agg = lambda x: x.mean(dim=1)
+            self.orbs_aggregator = lambda x: x.mean(dim=1)
         elif agg == 'weighted_sum':
             lin_layer = nn.Linear(n_orbs, 1)
-            self.agg = lambda x: lin_layer(x)
+            self.orbs_aggregator = lambda x: lin_layer(x.permute(0, 2, 1))[:, :, 0]
         else:
             raise NotImplementedError(f"Haven't implemented {agg} aggregation yet for LieConvGIGP!")
 
@@ -84,9 +84,9 @@ class LieConvGIGP(nn.Module):
 
         bs = coords.shape[0]
         unique_orbs = torch.unique(coords[:, :, 1, 1])
-        norbs = unique_orbs.shape[0]
+        assert unique_orbs.shape[0] == N_RMNIST_ORBS
         # orbs_mask shape: [bs, coords.shape[1], n_orbs]
-        orbs_mask = abs(coords[:, :, 1, 1].unsqueeze(-1) - unique_orbs.expand(bs, coords.shape[1], norbs)) <= \
+        orbs_mask = abs(coords[:, :, 1, 1].unsqueeze(-1) - unique_orbs.expand(bs, coords.shape[1], N_RMNIST_ORBS)) <= \
                     self.orbs_agg_dist
         exp_vals = masked_vals.unsqueeze(-2)
         masked_orbs = torch.where(orbs_mask.unsqueeze(-1), exp_vals, 0.)
@@ -95,13 +95,13 @@ class LieConvGIGP(nn.Module):
             masked_orbs = torch.cat([masked_orbs, unique_orbs.expand(bs, masked_orbs.shape[1], -1)[:, :, :, None]],
                                     dim=-1)
 
-        agg_orbs = masked_orbs.sum(dim=1) if not self.mean else masked_orbs.mean(dim=1)
+        orbs_repr = masked_orbs.sum(dim=1)
 
-        empty_orbs_mask = agg_orbs.sum(dim=-1) == 0
-        transf_orbs = self.orb_mlp(agg_orbs)
+        empty_orbs_mask = orbs_repr.sum(dim=-1) == 0
+        transf_orbs = self.orb_mlp(orbs_repr)
         masked_transf_orbs = torch.where(~empty_orbs_mask.unsqueeze(-1), transf_orbs, 0.)
 
-        return self.agg(masked_transf_orbs)
+        return self.orbs_aggregator(masked_transf_orbs)
 
 
 # copies ImgLieResnet with GIGP optionally appended to it instead of global maxpooling
