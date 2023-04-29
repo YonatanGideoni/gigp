@@ -64,7 +64,8 @@ class Trainer(object, metaclass=Named):
                 self.step(minibatch)
                 [sched.step(step / steps_per_epoch) for sched in self.lr_schedulers]
 
-        self.logStuff(step)
+        metrics = self.logStuff(step)
+        wandb.log({'epoch': self.epoch, **metrics})
 
         wandb.finish()
 
