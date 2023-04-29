@@ -28,7 +28,7 @@ def get_lifted_data(img):
 def test_inv():
     img = torch.rand((1, 3, 28, 28))
 
-    gigp = LieConvGIGP(in_dim=3, out_dim=1, mean=True)
+    gigp = LieConvGIGP(in_dim=3, out_dim=1)
 
     norm_data = get_lifted_data(img)
     norm_res = gigp(norm_data)

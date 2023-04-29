@@ -8,7 +8,7 @@ from architectures.LieConv.lie_conv.lieGroups import SO2
 from architectures.LieConv.lie_conv.masked_batchnorm import MaskBatchNormNd
 from architectures.LieConv.lie_conv.utils import Named, Pass, Expression
 from architectures.gigp import ImgGIGP
-from consts import N_DIGITS
+from consts import N_DIGITS, N_RMNIST_ORBS
 from groups import Group
 
 
@@ -54,16 +54,26 @@ class NormalCNN(nn.Module):
 # TODO - create unit tests (eg. gives a consistent result when the mlp is set to the identity)
 class LieConvGIGP(nn.Module):
     def __init__(self, in_dim: int, orbs_agg_dist: float = 0,
-                 hidden_dim: int = 16, out_dim: int = 1, mean: bool = False, use_orbits_data: bool = False):
+                 hidden_dim: int = 16, out_dim: int = 1, agg: str = 'sum', use_orbits_data: bool = False,
+                 n_orbs: int = None):
         super().__init__()
         self.orb_mlp = nn.Sequential(nn.Linear(in_dim + use_orbits_data, hidden_dim), nn.ReLU(),
                                      nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
                                      nn.Linear(hidden_dim, out_dim))
         self.dist_func = SO2(alpha=0).distance
 
-        self.mean = mean
         self.use_orbs_data = use_orbits_data
         self.orbs_agg_dist = orbs_agg_dist
+
+        if agg == 'sum':
+            self.agg = lambda x: x.sum(dim=1)
+        elif agg == 'mean':
+            self.agg = lambda x: x.mean(dim=1)
+        elif agg == 'weighted_sum':
+            lin_layer = nn.Linear(n_orbs, 1)
+            self.agg = lambda x: lin_layer(x)
+        else:
+            raise NotImplementedError(f"Haven't implemented {agg} aggregation yet for LieConvGIGP!")
 
     # TODO - make sure you're summing the correct orbits
     def forward(self, x):
@@ -91,7 +101,7 @@ class LieConvGIGP(nn.Module):
         transf_orbs = self.orb_mlp(agg_orbs)
         masked_transf_orbs = torch.where(~empty_orbs_mask.unsqueeze(-1), transf_orbs, 0.)
 
-        return masked_transf_orbs.sum(dim=1) if not self.mean else masked_transf_orbs.mean(dim=1)
+        return self.agg(masked_transf_orbs)
 
 
 # copies ImgLieResnet with GIGP optionally appended to it instead of global maxpooling
@@ -112,7 +122,7 @@ class LieResNet(nn.Module, metaclass=Named):
     def __init__(self, chin, ds_frac=1, num_outputs=1, k=1536, nbhd=np.inf,
                  act="swish", bn=True, num_layers=6, mean=True, per_point=True, pool=True,
                  liftsamples=1, fill=1 / 4, group=SO2(.05), knn=False, cache=False, gigp: bool = False,
-                 use_orbits_data: bool = False, orbs_agg_dist: float = 0, **kwargs):
+                 use_orbits_data: bool = False, orbs_agg_dist: float = 0, gigp_agg: str = 'sum', **kwargs):
         super().__init__()
         if isinstance(fill, (float, int)):
             fill = [fill] * num_layers
@@ -121,8 +131,8 @@ class LieResNet(nn.Module, metaclass=Named):
         conv = lambda ki, ko, fill: LieConv(ki, ko, mc_samples=nbhd, ds_frac=ds_frac, bn=bn, act=act, mean=mean,
                                             group=group, fill=fill, cache=cache, knn=knn, **kwargs)
         pooling = (GlobalPool(mean=mean) if pool else Expression(lambda x: x[1])) if not gigp else \
-            LieConvGIGP(in_dim=num_outputs, out_dim=num_outputs, mean=mean, use_orbits_data=use_orbits_data,
-                        orbs_agg_dist=orbs_agg_dist)
+            LieConvGIGP(in_dim=num_outputs, out_dim=num_outputs, use_orbits_data=use_orbits_data,
+                        orbs_agg_dist=orbs_agg_dist, agg=gigp_agg, n_orbs=N_RMNIST_ORBS)
         self.net = nn.Sequential(
             Pass(nn.Linear(chin, k[0]), dim=1),  # embedding layer
             *[BottleBlock(k[i], k[i + 1], conv, bn=bn, act=act, fill=fill[i]) for i in range(num_layers)],
