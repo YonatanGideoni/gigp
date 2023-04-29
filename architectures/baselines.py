@@ -73,7 +73,7 @@ class LieConvGIGP(nn.Module):
         elif agg == 'mean':
             self.orbs_aggregator = lambda x: x.mean(dim=1)
         elif agg == 'weighted_sum':
-            lin_layer = nn.Linear(n_orbs, 1)
+            lin_layer = nn.Linear(n_orbs, 1, device=DEVICE)
             self.orbs_aggregator = lambda x: lin_layer(x.permute(0, 2, 1))[:, :, 0]
         else:
             raise NotImplementedError(f"Haven't implemented {agg} aggregation yet for LieConvGIGP!")
