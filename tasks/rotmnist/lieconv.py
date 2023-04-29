@@ -4,7 +4,7 @@ import torch
 import wandb
 from torch.utils.data import DataLoader
 
-from consts import PROJ_NAME, ENT_NAME
+from consts import PROJ_NAME, ENT_NAME, DEVICE
 from oil.utils.utils import LoaderTo, cosLr, islice
 from oil.tuning.study import train_trial
 from oil.datasetup.datasets import split_dataset
@@ -21,7 +21,7 @@ from architectures.baselines import GIGPImgLieResnet
 
 
 def makeTrainer(*, dataset=MnistRotDataset, network=GIGPImgLieResnet, num_epochs=100,
-                bs=50, lr=3e-3, aug=True, optim=Adam, device='cuda', trainer=Classifier,
+                bs=50, lr=3e-3, aug=True, optim=Adam, device=DEVICE, trainer=Classifier,
                 split={'train': 12000}, small_test=False, net_config={}, opt_config={},
                 trainer_config={'log_dir': None}):
     print(f'GIGP:{net_config["gigp"]}')
@@ -29,8 +29,7 @@ def makeTrainer(*, dataset=MnistRotDataset, network=GIGPImgLieResnet, num_epochs
     # Prep the datasets splits, model, and dataloaders
     datasets = split_dataset(dataset(f'~/datasets/{dataset}/'), splits=split)
     datasets['test'] = dataset(f'~/datasets/{dataset}/', train=False)
-    device = torch.device(device)
-    model = network(num_targets=datasets['train'].num_targets, **net_config).to(device)
+    model = network(num_targets=datasets['train'].num_targets, **net_config).to(DEVICE)
     if aug: model = torch.nn.Sequential(datasets['train'].default_aug_layers(), model)
     model, bs = try_multigpu_parallelize(model, bs)
 
@@ -55,9 +54,9 @@ def makeTrainer(*, dataset=MnistRotDataset, network=GIGPImgLieResnet, num_epochs
 
 
 """
-python gigp/tasks/rotmnist/lieconv.py --num_epochs=500 --trainer_config "{'log_suffix':'mnistSO2'}" \
-  --net_config "{'k':128,'total_ds':.1,'fill':.1,'nbhd':25,'group':SO2(.2), 'gigp': True, 'use_orbits_data': True}" \
-  --bs 25 --lr .003 --split "{'train':12000}" --aug=True
+python gigp/tasks/rotmnist/lieconv.py --num_epochs=500 --trainer_config "{'log_suffix':'mnistSO2'}" 
+--net_config "{'k':128,'total_ds':.1,'fill':.1,'nbhd':25,'group':SO2(.2), 'gigp': True, 'use_orbits_data': True, 
+'orbs_agg_dist': .5}" --bs 25 --lr .003 --split "{'train':12000, 'test':5000}" --aug=True
 """
 if __name__ == "__main__":
     Trial = train_trial(makeTrainer)

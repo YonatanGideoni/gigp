@@ -64,6 +64,7 @@ class LieConvGIGP(nn.Module):
 
         self.mean = mean
         self.use_orbs_data = use_orbits_data
+        self.orbs_agg_dist = orbs_agg_dist
 
     # TODO - make sure you're summing the correct orbits
     def forward(self, x):
@@ -75,7 +76,8 @@ class LieConvGIGP(nn.Module):
         bs = coords.shape[0]
         unique_orbs = torch.unique(coords[:, :, 1, 1])
         # orbs_mask shape: [bs, coords.shape[1], n_orbs]
-        orbs_mask = coords[:, :, 1, 1].unsqueeze(-1) == unique_orbs.repeat(bs, coords.shape[1], 1)
+        orbs_mask = abs(coords[:, :, 1, 1].unsqueeze(-1) - unique_orbs.repeat(bs, coords.shape[1], 1)) <= \
+                    self.orbs_agg_dist
         exp_vals = masked_vals.unsqueeze(-2)
         masked_orbs = torch.where(orbs_mask.unsqueeze(-1), exp_vals, torch.zeros_like(exp_vals))
 
@@ -110,7 +112,7 @@ class LieResNet(nn.Module, metaclass=Named):
     def __init__(self, chin, ds_frac=1, num_outputs=1, k=1536, nbhd=np.inf,
                  act="swish", bn=True, num_layers=6, mean=True, per_point=True, pool=True,
                  liftsamples=1, fill=1 / 4, group=SO2(.05), knn=False, cache=False, gigp: bool = False,
-                 use_orbits_data: bool = False, **kwargs):
+                 use_orbits_data: bool = False, orbs_agg_dist: float = 0, **kwargs):
         super().__init__()
         if isinstance(fill, (float, int)):
             fill = [fill] * num_layers
@@ -119,7 +121,8 @@ class LieResNet(nn.Module, metaclass=Named):
         conv = lambda ki, ko, fill: LieConv(ki, ko, mc_samples=nbhd, ds_frac=ds_frac, bn=bn, act=act, mean=mean,
                                             group=group, fill=fill, cache=cache, knn=knn, **kwargs)
         pooling = (GlobalPool(mean=mean) if pool else Expression(lambda x: x[1])) if not gigp else \
-            LieConvGIGP(in_dim=num_outputs, out_dim=num_outputs, mean=mean, use_orbits_data=use_orbits_data)
+            LieConvGIGP(in_dim=num_outputs, out_dim=num_outputs, mean=mean, use_orbits_data=use_orbits_data,
+                        orbs_agg_dist=orbs_agg_dist)
         self.net = nn.Sequential(
             Pass(nn.Linear(chin, k[0]), dim=1),  # embedding layer
             *[BottleBlock(k[i], k[i + 1], conv, bn=bn, act=act, fill=fill[i]) for i in range(num_layers)],
