@@ -8,7 +8,7 @@ from architectures.LieConv.lie_conv.lieGroups import SO2
 from architectures.LieConv.lie_conv.masked_batchnorm import MaskBatchNormNd
 from architectures.LieConv.lie_conv.utils import Named, Pass, Expression
 from architectures.gigp import ImgGIGP
-from consts import N_DIGITS
+from consts import N_DIGITS, DEVICE
 from groups import Group
 
 
@@ -90,7 +90,7 @@ class LieConvGIGP(nn.Module):
         if self.orbs is None:
             min_orb = torch.min(coords[:, :, 1, 1])
             max_orb = torch.max(coords[:, :, 1, 1])
-            self.orbs = torch.linspace(min_orb, max_orb, self.n_orbs)
+            self.orbs = torch.linspace(min_orb, max_orb, self.n_orbs).to(DEVICE)
             # TODO - check that agg_orbs_dist isn't too small and give a warning if it's fishy
         # orbs_mask shape: [bs, coords.shape[1], n_orbs]
         orbs_mask = abs(coords[:, :, 1, 1].unsqueeze(-1) - self.orbs.expand(bs, coords.shape[1], self.n_orbs)) <= \
