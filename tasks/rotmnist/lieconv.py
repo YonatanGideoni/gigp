@@ -1,5 +1,10 @@
+from datetime import datetime
+
 import torch
+import wandb
 from torch.utils.data import DataLoader
+
+from consts import PROJ_NAME, ENT_NAME
 from oil.utils.utils import LoaderTo, cosLr, islice
 from oil.tuning.study import train_trial
 from oil.datasetup.datasets import split_dataset
@@ -36,6 +41,16 @@ def makeTrainer(*, dataset=MnistRotDataset, network=GIGPImgLieResnet, num_epochs
     # Add some extra defaults if SGD is chosen
     opt_constr = partial(optim, lr=lr, **opt_config)
     lr_sched = cosLr(num_epochs)
+
+    wandb.login()
+
+    run_time = datetime.now()
+    wandb.init(
+        project=PROJ_NAME,
+        entity=ENT_NAME,
+        name=f'LC_{trainer_config["log_suffix"]}_{"no_" * (not net_config["gigp"])}gigp_{run_time.month}_{run_time.day}_{run_time.hour}_{run_time.minute}_{run_time.second}',
+        config={**trainer_config, **net_config})
+
     return trainer(model, dataloaders, opt_constr, lr_sched, **trainer_config)
 
 
