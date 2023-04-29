@@ -8,7 +8,7 @@ from architectures.LieConv.lie_conv.lieGroups import SO2
 from architectures.LieConv.lie_conv.masked_batchnorm import MaskBatchNormNd
 from architectures.LieConv.lie_conv.utils import Named, Pass, Expression
 from architectures.gigp import ImgGIGP
-from consts import N_DIGITS, N_RMNIST_ORBS
+from consts import N_DIGITS
 from groups import Group
 
 
@@ -53,9 +53,9 @@ class NormalCNN(nn.Module):
 
 # TODO - create unit tests (eg. gives a consistent result when the mlp is set to the identity)
 class LieConvGIGP(nn.Module):
-    def __init__(self, in_dim: int, orbs_agg_dist: float = 0,
+    def __init__(self, in_dim: int, orbs_agg_dist: float = .5,
                  hidden_dim: int = 16, out_dim: int = 1, agg: str = 'sum', use_orbits_data: bool = False,
-                 n_orbs: int = None):
+                 n_orbs: int = 50):
         super().__init__()
         self.orb_mlp = nn.Sequential(nn.Linear(in_dim + use_orbits_data, hidden_dim), nn.ReLU(),
                                      nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
@@ -65,7 +65,8 @@ class LieConvGIGP(nn.Module):
         self.use_orbs_data = use_orbits_data
         self.orbs_agg_dist = orbs_agg_dist
 
-        self.orbs=None
+        self.orbs = None
+        self.n_orbs = n_orbs
 
         if agg == 'sum':
             self.orbs_aggregator = lambda x: x.sum(dim=1)
@@ -87,10 +88,12 @@ class LieConvGIGP(nn.Module):
         bs = coords.shape[0]
 
         if self.orbs is None:
-            self.orbs = torch.unique(coords[:, :, 1, 1])
-            assert self.orbs.shape[0] == N_RMNIST_ORBS
+            min_orb = torch.min(coords[:, :, 1, 1])
+            max_orb = torch.max(coords[:, :, 1, 1])
+            self.orbs = torch.linspace(min_orb, max_orb, self.n_orbs)
+            # TODO - check that agg_orbs_dist isn't too small and give a warning if it's fishy
         # orbs_mask shape: [bs, coords.shape[1], n_orbs]
-        orbs_mask = abs(coords[:, :, 1, 1].unsqueeze(-1) - self.orbs.expand(bs, coords.shape[1], N_RMNIST_ORBS)) <= \
+        orbs_mask = abs(coords[:, :, 1, 1].unsqueeze(-1) - self.orbs.expand(bs, coords.shape[1], self.n_orbs)) <= \
                     self.orbs_agg_dist
         exp_vals = masked_vals.unsqueeze(-2)
         masked_orbs = torch.where(orbs_mask.unsqueeze(-1), exp_vals, 0.)
@@ -136,7 +139,7 @@ class LieResNet(nn.Module, metaclass=Named):
                                             group=group, fill=fill, cache=cache, knn=knn, **kwargs)
         pooling = (GlobalPool(mean=mean) if pool else Expression(lambda x: x[1])) if not gigp else \
             LieConvGIGP(in_dim=num_outputs, out_dim=num_outputs, use_orbits_data=use_orbits_data,
-                        orbs_agg_dist=orbs_agg_dist, agg=gigp_agg, n_orbs=N_RMNIST_ORBS)
+                        orbs_agg_dist=orbs_agg_dist, agg=gigp_agg)
         self.net = nn.Sequential(
             Pass(nn.Linear(chin, k[0]), dim=1),  # embedding layer
             *[BottleBlock(k[i], k[i + 1], conv, bn=bn, act=act, fill=fill[i]) for i in range(num_layers)],
