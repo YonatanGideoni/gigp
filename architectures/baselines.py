@@ -71,15 +71,17 @@ class LieConvGIGP(nn.Module):
         """x [xyz (bs,n,d), vals (bs,n,c), mask (bs,n)]"""
         if len(x) == 2: return x[1].mean(1)
         coords, vals, mask = x
-        masked_vals = torch.where(mask.unsqueeze(-1), vals, torch.zeros_like(vals))
+        masked_vals = torch.where(mask.unsqueeze(-1), vals, 0.)
 
         bs = coords.shape[0]
         unique_orbs = torch.unique(coords[:, :, 1, 1])
+        norbs = unique_orbs.shape[0]
+        # TODO - find more efficient way to implement this?
         # orbs_mask shape: [bs, coords.shape[1], n_orbs]
-        orbs_mask = abs(coords[:, :, 1, 1].unsqueeze(-1) - unique_orbs.repeat(bs, coords.shape[1], 1)) <= \
+        orbs_mask = abs(coords[:, :, 1, 1].unsqueeze(-1) - unique_orbs.expand(bs, coords.shape[1], norbs)) <= \
                     self.orbs_agg_dist
         exp_vals = masked_vals.unsqueeze(-2)
-        masked_orbs = torch.where(orbs_mask.unsqueeze(-1), exp_vals, torch.zeros_like(exp_vals))
+        masked_orbs = torch.where(orbs_mask.unsqueeze(-1), exp_vals, 0.)
 
         if self.use_orbs_data:
             masked_orbs = torch.cat([masked_orbs, unique_orbs.expand(bs, masked_orbs.shape[1], -1)[:, :, :, None]],
@@ -89,7 +91,7 @@ class LieConvGIGP(nn.Module):
 
         empty_orbs_mask = agg_orbs.sum(dim=-1) == 0
         transf_orbs = self.orb_mlp(agg_orbs)
-        masked_transf_orbs = torch.where(~empty_orbs_mask.unsqueeze(-1), transf_orbs, torch.zeros_like(transf_orbs))
+        masked_transf_orbs = torch.where(~empty_orbs_mask.unsqueeze(-1), transf_orbs, 0.)
 
         return masked_transf_orbs.sum(dim=1) if not self.mean else masked_transf_orbs.mean(dim=1)
 
