@@ -65,6 +65,8 @@ class LieConvGIGP(nn.Module):
         self.use_orbs_data = use_orbits_data
         self.orbs_agg_dist = orbs_agg_dist
 
+        self.orbs=None
+
         if agg == 'sum':
             self.orbs_aggregator = lambda x: x.sum(dim=1)
         elif agg == 'mean':
@@ -83,16 +85,18 @@ class LieConvGIGP(nn.Module):
         masked_vals = torch.where(mask.unsqueeze(-1), vals, 0.)
 
         bs = coords.shape[0]
-        unique_orbs = torch.unique(coords[:, :, 1, 1])
-        assert unique_orbs.shape[0] == N_RMNIST_ORBS
+
+        if self.orbs is None:
+            self.orbs = torch.unique(coords[:, :, 1, 1])
+            assert self.orbs.shape[0] == N_RMNIST_ORBS
         # orbs_mask shape: [bs, coords.shape[1], n_orbs]
-        orbs_mask = abs(coords[:, :, 1, 1].unsqueeze(-1) - unique_orbs.expand(bs, coords.shape[1], N_RMNIST_ORBS)) <= \
+        orbs_mask = abs(coords[:, :, 1, 1].unsqueeze(-1) - self.orbs.expand(bs, coords.shape[1], N_RMNIST_ORBS)) <= \
                     self.orbs_agg_dist
         exp_vals = masked_vals.unsqueeze(-2)
         masked_orbs = torch.where(orbs_mask.unsqueeze(-1), exp_vals, 0.)
 
         if self.use_orbs_data:
-            masked_orbs = torch.cat([masked_orbs, unique_orbs.expand(bs, masked_orbs.shape[1], -1)[:, :, :, None]],
+            masked_orbs = torch.cat([masked_orbs, self.orbs.expand(bs, masked_orbs.shape[1], -1)[:, :, :, None]],
                                     dim=-1)
 
         orbs_repr = masked_orbs.sum(dim=1)
