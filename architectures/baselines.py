@@ -75,14 +75,9 @@ class LieConvGIGP(nn.Module):
         bs = coords.shape[0]
         unique_orbs = torch.unique(coords[:, :, 1, 1])
         norbs = unique_orbs.shape[0]
-        # TODO - find more efficient way to implement this?
         # orbs_mask shape: [bs, coords.shape[1], n_orbs]
-        if self.orbs_agg_dist:
-            orbs_mask = abs(coords[:, :, 1, 1].unsqueeze(-1) - unique_orbs.expand(bs, coords.shape[1], norbs)) <= \
-                        self.orbs_agg_dist
-        else:
-            # far more efficient
-            orbs_mask = coords[:, :, 1, 1].unsqueeze(-1) == unique_orbs.expand(bs, coords.shape[1], norbs)
+        orbs_mask = abs(coords[:, :, 1, 1].unsqueeze(-1) - unique_orbs.expand(bs, coords.shape[1], norbs)) <= \
+                    self.orbs_agg_dist
         exp_vals = masked_vals.unsqueeze(-2)
         masked_orbs = torch.where(orbs_mask.unsqueeze(-1), exp_vals, 0.)
 

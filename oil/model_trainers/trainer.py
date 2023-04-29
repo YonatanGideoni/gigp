@@ -54,18 +54,15 @@ class Trainer(object, metaclass=Named):
         steps_per_epoch = len(self.dataloaders['train'])
         step = 0
         for self.epoch in tqdm(range(start_epoch + 1, start_epoch + num_epochs + 1), desc='train'):
-            train_loss = 0
             for i, minibatch in enumerate(self.dataloaders['train']):
                 step = i + (self.epoch - 1) * steps_per_epoch
                 with self.logger as do_log:
-                    if do_log: self.logStuff(step, minibatch)
-                train_loss += self.step(minibatch)
-                [sched.step(step / steps_per_epoch) for sched in self.lr_schedulers]
+                    if do_log:
+                        metrics = self.logStuff(step, minibatch)
+                        wandb.log({'epoch': self.epoch, **metrics})
 
-            epoch_metrics = self.logStuff(step, minibatch, builtin_log=False)
-            del epoch_metrics['Minibatch_Loss']
-            train_loss /= steps_per_epoch
-            wandb.log({'epoch': self.epoch, 'train_loss': train_loss.item(), **epoch_metrics})
+                self.step(minibatch)
+                [sched.step(step / steps_per_epoch) for sched in self.lr_schedulers]
 
         self.logStuff(step)
 
