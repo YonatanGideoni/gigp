@@ -29,6 +29,12 @@ def makeTrainer(*, dataset=MnistRotDataset, network=GIGPImgLieResnet, num_epochs
     # Prep the datasets splits, model, and dataloaders
     datasets = split_dataset(dataset(f'~/datasets/{dataset}/'), splits=split)
     datasets['test'] = dataset(f'~/datasets/{dataset}/', train=False)
+
+    if 'test' in split:
+        datasets['test'].images = datasets['test'].images[:, :split['test']]
+        datasets['test'].labels = datasets['test'].labels[:split['test']]
+        datasets['test'].num_samples = split['test']
+
     model = network(num_targets=datasets['train'].num_targets, **net_config).to(DEVICE)
     if aug: model = torch.nn.Sequential(datasets['train'].default_aug_layers(), model)
     model, bs = try_multigpu_parallelize(model, bs)
@@ -60,4 +66,5 @@ if __name__ == "__main__":
     Trial = train_trial(makeTrainer)
     defaults = copy.deepcopy(makeTrainer.__kwdefaults__)
     defaults['save'] = True
-    Trial(argupdated_config(defaults, namespace=(lieConv, lieGroups)))
+    res = Trial(argupdated_config(defaults, namespace=(lieConv, lieGroups)))
+    print()
