@@ -57,9 +57,13 @@ class LieConvGIGP(nn.Module):
                  hidden_dim: int = 16, out_dim: int = 1, agg: str = 'sum', use_orbits_data: bool = False,
                  n_orbs: int = 50):
         super().__init__()
-        self.orb_mlp = nn.Sequential(nn.Linear(in_dim + use_orbits_data, hidden_dim), nn.ReLU(),
-                                     nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
-                                     nn.Linear(hidden_dim, out_dim))
+
+        # all trainable layers need to have GIGP in their name so we'll know not to freeze them if freezing
+        # the base LC layers. This is useful for quickly testing things when we train just the GIGP layers appended
+        # to a pretrained model
+        self.gigp_orb_mlp = nn.Sequential(nn.Linear(in_dim + use_orbits_data, hidden_dim), nn.ReLU(),
+                                          nn.Linear(hidden_dim, hidden_dim), nn.ReLU(),
+                                          nn.Linear(hidden_dim, out_dim))
         self.dist_func = SO2(alpha=0).distance
 
         self.use_orbs_data = use_orbits_data
@@ -73,8 +77,8 @@ class LieConvGIGP(nn.Module):
         elif agg == 'mean':
             self.orbs_aggregator = lambda x: x.mean(dim=1)
         elif agg == 'weighted_sum':
-            lin_layer = nn.Linear(n_orbs, 1, device=DEVICE)
-            self.orbs_aggregator = lambda x: lin_layer(x.permute(0, 2, 1))[:, :, 0]
+            self.gigp_lin_layer = nn.Linear(n_orbs, 1, device=DEVICE)
+            self.orbs_aggregator = lambda x: self.gigp_lin_layer(x.permute(0, 2, 1))[:, :, 0]
         else:
             raise NotImplementedError(f"Haven't implemented {agg} aggregation yet for LieConvGIGP!")
 
@@ -105,7 +109,7 @@ class LieConvGIGP(nn.Module):
         orbs_repr = masked_orbs.sum(dim=1)
 
         empty_orbs_mask = orbs_repr.sum(dim=-1) == 0
-        transf_orbs = self.orb_mlp(orbs_repr)
+        transf_orbs = self.gigp_orb_mlp(orbs_repr)
         masked_transf_orbs = torch.where(~empty_orbs_mask.unsqueeze(-1), transf_orbs, 0.)
 
         return self.orbs_aggregator(masked_transf_orbs)

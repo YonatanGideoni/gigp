@@ -24,7 +24,7 @@ from architectures.baselines import GIGPImgLieResnet
 def makeTrainer(*, dataset=MnistRotDataset, network=GIGPImgLieResnet, num_epochs=100,
                 bs=50, lr=3e-3, aug=True, optim=Adam, device=DEVICE, trainer=Classifier,
                 split={'train': 12000}, small_test=False, net_config={}, opt_config={},
-                trainer_config={'log_dir': None}, checkpoint: str = None):
+                trainer_config={'log_dir': None}, checkpoint: str = None, disable_base_lc: bool = False):
     print(f'GIGP:{net_config["gigp"]}')
 
     # Prep the datasets splits, model, and dataloaders
@@ -41,10 +41,21 @@ def makeTrainer(*, dataset=MnistRotDataset, network=GIGPImgLieResnet, num_epochs
     model, bs = try_multigpu_parallelize(model, bs)
 
     if checkpoint:
+        print(f'Loading checkpoint {checkpoint}')
+
         with open(checkpoint, 'rb') as f:
             checkpoint_data = dill.load(f)
 
         model.load_state_dict(checkpoint_data['model_state'], strict=False)
+
+    if disable_base_lc:
+        print('Disabling non-GIGP layers')
+
+        for param_name, param in model.named_parameters():
+            if 'gigp' in param_name:
+                param.requires_grad_(True)
+                continue
+            param.requires_grad_(False)
 
     dataloaders = {k: LoaderTo(DataLoader(v, batch_size=bs, shuffle=(k == 'train'),
                                           num_workers=0, pin_memory=False), device) for k, v in datasets.items()}
