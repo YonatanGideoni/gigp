@@ -15,6 +15,7 @@ from architectures.LieConv.lie_conv.lieGroups import SO3
 from torchdiffeq import odeint_adjoint as odeint
 import torchvision
 
+from architectures.LieConv.corm_data.utils import initialize_datasets
 
 # ModelNet40 code adapted from
 # https://github.com/DylanWusee/pointconv_pytorch/blob/master/data_utils/ModelNetDataLoader.py
