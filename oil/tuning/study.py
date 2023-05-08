@@ -177,7 +177,7 @@ class train_trial(object):
     def __init__(self,make_trainer,strict=True):
         self.make_trainer = make_trainer
         self.strict=strict
-    def __call__(self,cfg,i=None):
+    def __call__(self,cfg,i=None, use_wandb=True):
         try:
             cfg.pop('local_rank',None) #TODO: properly handle distributed
             resume = cfg.pop('resume',False)
@@ -197,7 +197,7 @@ class train_trial(object):
             if resume: trainer.load_checkpoint(None if resume==True else resume)
             epochs = [e for e in epochs if e>trainer.epoch]
             for epoch in epochs:
-                trainer.train_to(epoch)
+                trainer.train_to(epoch, use_wandb=use_wandb)
                 if save: cfg['saved_at']=trainer.save_checkpoint()
             outcome = trainer.ckpt['outcome']
         except Exception as e:

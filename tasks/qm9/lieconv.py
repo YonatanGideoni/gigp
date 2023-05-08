@@ -110,7 +110,8 @@ if __name__ == "__main__":
     defaults["save"] = False
     print(
         Trial(
-            argupdated_config(defaults, namespace=(moleculeTrainer, lieGroups))
+            argupdated_config(defaults, namespace=(moleculeTrainer, lieGroups)),
+            use_wandb=False
         )
     )
 

@@ -44,11 +44,11 @@ class Trainer(object, metaclass=Named):
     def loss(self, minibatch):
         raise NotImplementedError
 
-    def train_to(self, final_epoch=100):
+    def train_to(self, final_epoch=100, use_wandb=True):
         assert final_epoch >= self.epoch, "trying to train less than already trained"
-        self.train(final_epoch - self.epoch)
+        self.train(final_epoch - self.epoch, use_wandb=use_wandb)
 
-    def train(self, num_epochs=100):
+    def train(self, num_epochs=100, use_wandb=True):
         """ The main training loop"""
         start_epoch = self.epoch
         steps_per_epoch = len(self.dataloaders['train'])
@@ -59,15 +59,16 @@ class Trainer(object, metaclass=Named):
                 with self.logger as do_log:
                     if do_log:
                         metrics = self.logStuff(step, minibatch)
-                        wandb.log({'epoch': self.epoch, **metrics})
+                        if use_wandb:
+                            wandb.log({'epoch': self.epoch, **metrics})
 
                 self.step(minibatch)
                 [sched.step(step / steps_per_epoch) for sched in self.lr_schedulers]
 
         metrics = self.logStuff(step)
-        wandb.log({'epoch': self.epoch, **metrics})
-
-        wandb.finish()
+        if use_wandb:
+            wandb.log({'epoch': self.epoch, **metrics})
+            wandb.finish()
 
     def step(self, minibatch):
         self.optimizer.zero_grad()
