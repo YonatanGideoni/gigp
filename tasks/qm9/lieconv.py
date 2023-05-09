@@ -8,6 +8,7 @@ from oil.utils.parallel import try_multigpu_parallelize
 from architectures.LieConv.lie_conv.datasets import QM9datasets
 from architectures.LieConv.corm_data.collate import collate_fn
 from architectures.LieConv.lie_conv.moleculeTrainer import MolecLieResNet, MoleculeTrainer
+from architectures.baselines import GIGPMolecLieResNet
 from oil.datasetup.datasets import split_dataset
 
 import architectures.LieConv.lie_conv.moleculeTrainer as moleculeTrainer
@@ -26,7 +27,7 @@ def makeTrainer(
     lr=3e-3,
     bs=75,
     num_epochs=500,
-    network=MolecLieResNet,
+    network=GIGPMolecLieResNet,
     net_config={
         "k": 1536,
         "nbhd": 100,

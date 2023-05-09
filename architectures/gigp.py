@@ -37,3 +37,9 @@ class ImgGIGP(GIGP):
         x = x.flatten(start_dim=-2)
 
         return super().forward(x)
+
+class MolecGIGP(GIGP):
+    def forward(self, x):
+        print(x.shape)
+
+        return super().forward(x)
