@@ -1,3 +1,4 @@
+import dill
 import torch
 from torch.utils.data import DataLoader
 from torch.optim import Adam
@@ -20,27 +21,30 @@ import logging
 logging.basicConfig()
 logger = logging.getLogger()
 
+
 def makeTrainer(
-    *,
-    task="homo",
-    device="cuda",
-    lr=3e-3,
-    bs=75,
-    num_epochs=500,
-    network=GIGPMolecLieResNet,
-    net_config={
-        "k": 1536,
-        "nbhd": 100,
-        "act": "swish",
-        "group": lieGroups.T(3),
-        "bn": True,
-        "aug": True,
-        "mean": True,
-        "num_layers": 6,
-    },
-    recenter=False,
-    subsample=False,
-    trainer_config={"log_dir": None, "log_suffix": ""}
+        *,
+        task="homo",
+        device="cuda",
+        lr=3e-3,
+        bs=75,
+        num_epochs=500,
+        network=GIGPMolecLieResNet,
+        net_config={
+            "k": 1536,
+            "nbhd": 100,
+            "act": "swish",
+            "group": lieGroups.T(3),
+            "bn": True,
+            "aug": True,
+            "mean": True,
+            "num_layers": 6,
+        },
+        recenter=False,
+        subsample=False,
+        trainer_config={"log_dir": None, "log_suffix": ""},
+        checkpoint: str = None,
+        disable_base_lc: bool = False
 ):  # ,'log_args':{'timeFrac':1/4,'minPeriod':0}}):
     # Create Training set and model
     logging.getLogger().setLevel(logging.DEBUG)
@@ -61,13 +65,30 @@ def makeTrainer(
         mean, std = pos.mean(dim=0), pos.std()
         for ds in datasets.values():
             ds.data["positions"] = (
-                ds.data["positions"] - mean[None, None, :]
-            ) / std
-
+                                           ds.data["positions"] - mean[None, None, :]
+                                   ) / std
 
     logger.info("Done preparing the dataset!")
     model = network(num_species, charge_scale, **net_config).to(device)
     model, bs = try_multigpu_parallelize(model, bs)
+
+    if checkpoint:
+        print(f'Loading checkpoint {checkpoint}')
+
+        with open(checkpoint, 'rb') as f:
+            checkpoint_data = dill.load(f)
+
+        model.load_state_dict(checkpoint_data['model_state'], strict=False)
+
+    if disable_base_lc:
+        print('Disabling non-GIGP layers')
+
+        for param_name, param in model.named_parameters():
+            if 'gigp' in param_name:
+                param.requires_grad_(True)
+                continue
+            param.requires_grad_(False)
+
     # Create train and Val(Test) dataloaders and move elems to gpu
     dataloaders = {
         key: LoaderTo(
@@ -104,6 +125,7 @@ def makeTrainer(
     )
 
 
+"""--task 'homo' --lr 3e-3 --aug True --num_epochs 500 --num_layers 6 --save=True --net_config "{'group':T(3),'fill':1.,'gigp': True, 'use_orbits_data': True, 'orbs_agg_dist': .5, 'gigp_agg': 'weighted_sum'}" --device cuda --checkpoint "gigp/tasks/qm9/c500.state" --disable_base_lc True"""
 if __name__ == "__main__":
     Trial = train_trial(makeTrainer)
     defaults = copy.deepcopy(makeTrainer.__kwdefaults__)
