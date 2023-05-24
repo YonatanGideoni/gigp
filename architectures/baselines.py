@@ -9,7 +9,7 @@ from architectures.LieConv.lie_conv.lieConv import (
     GlobalPool,
     LieConv,
 )
-from architectures.LieConv.lie_conv.lieGroups import SO2, SE3
+from architectures.LieConv.lie_conv.lieGroups import SO2, SE3, SO3, LieGroup
 from architectures.LieConv.lie_conv.masked_batchnorm import MaskBatchNormNd
 from architectures.LieConv.lie_conv.datasets import SO3aug, SE3aug
 from architectures.LieConv.lie_conv.utils import Named, Pass, Expression
@@ -23,10 +23,10 @@ from groups import Group
 # taken from https://github.com/pytorch/examples/tree/main/mnist
 class NormalCNN(nn.Module):
     def __init__(
-        self,
-        use_gigp: bool = False,
-        group: Group = None,
-        coords: np.ndarray = None,
+            self,
+            use_gigp: bool = False,
+            group: Group = None,
+            coords: np.ndarray = None,
     ):
         super(NormalCNN, self).__init__()
         self.use_gigp = use_gigp
@@ -67,15 +67,15 @@ class NormalCNN(nn.Module):
 # TODO - create unit tests (eg. gives a consistent result when the mlp is set to the identity)
 class LieConvGIGP(nn.Module):
     def __init__(
-        self,
-        in_dim: int,
-        orbs_agg_dist: float = 0.5, # all orbits within that distance are aggregated as one
-        hidden_dim: int = 16,
-        out_dim: int = 1,
-        agg: str = "sum",
-        use_orbits_data: bool = False, # ??
-        n_orbs: int = 50, # Number of orbits
-        group = SO2(0)
+            self,
+            in_dim: int,
+            orbs_agg_dist: float = 0.5,  # all orbits within that distance are aggregated as one
+            hidden_dim: int = 16,
+            out_dim: int = 1,
+            agg: str = "sum",
+            use_orbits_data: bool = False,  # ??
+            n_orbs: int = 50,  # Number of orbits
+            group: LieGroup = SO2(0)
     ):
         super().__init__()
 
@@ -132,11 +132,11 @@ class LieConvGIGP(nn.Module):
             # TODO - check that agg_orbs_dist isn't too small and give a warning if it's fishy
         # orbs_mask shape: [bs, coords.shape[1], n_orbs]
         orbs_mask = (
-            abs(
-                coords[:, :, 1, 1].unsqueeze(-1)
-                - self.orbs.expand(bs, coords.shape[1], self.n_orbs)
-            )
-            <= self.orbs_agg_dist
+                abs(
+                    coords[:, :, 1, 1].unsqueeze(-1)
+                    - self.orbs.expand(bs, coords.shape[1], self.n_orbs)
+                )
+                <= self.orbs_agg_dist
         )
         exp_vals = masked_vals.unsqueeze(-2)
         masked_orbs = torch.where(orbs_mask.unsqueeze(-1), exp_vals, 0.0)
@@ -146,7 +146,7 @@ class LieConvGIGP(nn.Module):
                 [
                     masked_orbs,
                     self.orbs.expand(bs, masked_orbs.shape[1], -1)[
-                        :, :, :, None
+                    :, :, :, None
                     ],
                 ],
                 dim=-1,
@@ -179,28 +179,28 @@ class LieResNet(nn.Module, metaclass=Named):
         """
 
     def __init__(
-        self,
-        chin,
-        ds_frac=1,
-        num_outputs=1,
-        k=1536,
-        nbhd=np.inf,
-        act="swish",
-        bn=True,
-        num_layers=6,
-        mean=True,
-        per_point=True,
-        pool=True,
-        liftsamples=1,
-        fill=1 / 4,
-        group=SO2(0.05),
-        knn=False,
-        cache=False,
-        gigp: bool = False,
-        use_orbits_data: bool = False,
-        orbs_agg_dist: float = 0,
-        gigp_agg: str = "sum",
-        **kwargs,
+            self,
+            chin,
+            ds_frac=1,
+            num_outputs=1,
+            k=1536,
+            nbhd=np.inf,
+            act="swish",
+            bn=True,
+            num_layers=6,
+            mean=True,
+            per_point=True,
+            pool=True,
+            liftsamples=1,
+            fill=1 / 4,
+            group=SO2(0.05),
+            knn=False,
+            cache=False,
+            gigp: bool = False,
+            use_orbits_data: bool = False,
+            orbs_agg_dist: float = 0,
+            gigp_agg: str = "sum",
+            **kwargs,
     ):
         super().__init__()
         if isinstance(fill, (float, int)):
@@ -230,6 +230,7 @@ class LieResNet(nn.Module, metaclass=Named):
                 use_orbits_data=use_orbits_data,
                 orbs_agg_dist=orbs_agg_dist,
                 agg=gigp_agg,
+                group=group,
             )
         )
         self.net = nn.Sequential(
@@ -257,23 +258,23 @@ class GIGPImgLieResnet(LieResNet):
          and downsampling scaling. Same arguments as LieResNet"""
 
     def __init__(
-        self,
-        chin=1,
-        total_ds=1 / 64,
-        num_layers=6,
-        group=SO2(),
-        fill=1 / 32,
-        k=256,
-        knn=False,
-        nbhd=12,
-        num_targets=10,
-        increase_channels=True,
-        **kwargs,
+            self,
+            chin=1,
+            total_ds=1 / 64,
+            num_layers=6,
+            group=SO2(),
+            fill=1 / 32,
+            k=256,
+            knn=False,
+            nbhd=12,
+            num_targets=10,
+            increase_channels=True,
+            **kwargs,
     ):
         ds_frac = (total_ds) ** (1 / num_layers)
         fill = [fill / ds_frac ** i for i in range(num_layers)]
         if (
-            increase_channels
+                increase_channels
         ):  # whether or not to scale the channels as image is downsampled
             k = [int(k / ds_frac ** (i / 2)) for i in range(num_layers + 1)]
         super().__init__(
@@ -301,7 +302,7 @@ class GIGPImgLieResnet(LieResNet):
         coords = torch.stack(torch.meshgrid([i, j]), dim=-1).float()
         # Perform center crop
         center_mask = (
-            coords.norm(dim=-1) < 15.0
+                coords.norm(dim=-1) < 15.0
         )  # crop out corners (filled only with zeros)
         coords = (
             coords[center_mask]
@@ -327,22 +328,24 @@ class GIGPImgLieResnet(LieResNet):
                 )
         return self.net((self.lifted_coords, lifted_vals, lifted_mask))
 
+
 class GIGPMolecLieResNet(LieResNet):
     def __init__(self, num_species, charge_scale, aug=False, group=SE3, **kwargs):
-        super().__init__(chin=3*num_species,num_outputs=1,group=group,ds_frac=1,**kwargs)
+        super().__init__(chin=3 * num_species, num_outputs=1, group=group, ds_frac=1, **kwargs)
         self.charge_scale = charge_scale
-        self.aug =aug
-        self.random_rotate = SE3aug()#RandomRotation()
+        self.aug = aug
+        self.random_rotate = SE3aug()  # RandomRotation()
+
     def featurize(self, mb):
         charges = mb['charges'] / self.charge_scale
-        c_vec = torch.stack([torch.ones_like(charges),charges,charges**2],dim=-1) #
-        one_hot_charges = (mb['one_hot'][:,:,:,None]*c_vec[:,:,None,:]).float().reshape(*charges.shape,-1)
+        c_vec = torch.stack([torch.ones_like(charges), charges, charges ** 2], dim=-1)  #
+        one_hot_charges = (mb['one_hot'][:, :, :, None] * c_vec[:, :, None, :]).float().reshape(*charges.shape, -1)
         atomic_coords = mb['positions'].float()
-        atom_mask = mb['charges']>0
-        #print('orig_mask',atom_mask[0].sum())
+        atom_mask = mb['charges'] > 0
+        # print('orig_mask',atom_mask[0].sum())
         return (atomic_coords, one_hot_charges, atom_mask)
 
-    def forward(self,mb):
+    def forward(self, mb):
         with torch.no_grad():
             x = self.featurize(mb)
             x = self.random_rotate(x) if self.aug else x
