@@ -69,13 +69,31 @@ def pixels2coords(h: int, w: int):
     return coords
 
 
-def init_sum_mlp(mlp):
+# TODO - clean up+docstring
+def init_sum_mlp(mlp, n_inps_sum: int = None):
     layers = list(mlp.children())
-    for layer in layers[:-1]:
+
+    layer = layers[0]
+    new_weights = torch.zeros_like(layer.weight)
+    if n_inps_sum is None:
+        new_weights[0, :] = 1
+        new_weights[1, :] = -1
+    else:
+        new_weights[0, :n_inps_sum] = 1
+        new_weights[1, :n_inps_sum] = -1
+
+    layer.weight.requires_grad_(False)
+    layer.weight.copy_(new_weights)
+    nn.init.constant_(layer.bias, 0)
+    layer.weight.requires_grad_(True)
+
+    for layer in layers[1:-1]:
         try:
             new_weights = torch.zeros_like(layer.weight)
-            new_weights[0, :] = 1
-            new_weights[1, :] = -1
+            new_weights[0, 0] = 1
+            new_weights[0, 1] = -1
+            new_weights[1, 0] = -1
+            new_weights[1, 1] = 1
 
             layer.weight.requires_grad_(False)
             layer.weight.copy_(new_weights)
@@ -83,5 +101,12 @@ def init_sum_mlp(mlp):
             layer.weight.requires_grad_(True)
         except AttributeError:
             continue
-    nn.init.constant_(layers[-1].bias, 0)
-    nn.init.constant_(layers[-1].weight, 1)
+
+    layer = layers[-1]
+    new_weights = torch.zeros_like(layer.weight)
+    new_weights[0, 0] = 1
+    new_weights[0, 1] = -1
+    layer.weight.requires_grad_(False)
+    layer.weight.copy_(new_weights)
+    nn.init.constant_(layer.bias, 0)
+    layer.weight.requires_grad_(True)
