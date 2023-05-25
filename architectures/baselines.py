@@ -121,9 +121,8 @@ class LieConvGIGP(nn.Module):
                     "Error - haven't yet implemented anything for when the initialisation isn't mean pooling!"
                 assert out_dim == 1, 'Error - currently only works when the outdim is 1!'
 
-                nn.init.constant_(self.gigp_lin_layer.weight, 1. / n_orbs)
+                nn.init.constant_(self.gigp_lin_layer.weight, 1)
                 init_sum_mlp(self.gigp_orb_mlp, n_inps_sum=in_dim)
-                self.init_lin_layer = False
         else:
             raise NotImplementedError(
                 f"Haven't implemented {agg} aggregation yet for LieConvGIGP!"
@@ -178,10 +177,10 @@ class LieConvGIGP(nn.Module):
             ~empty_orbs_mask.unsqueeze(-1), transf_orbs, 0.0
         )
 
-        if not self.init_lin_layer:
-            n_aggd_vals = orbs_mask.sum(dim=[1, 2]).median()  # not precise but should be a good approximation
-            nn.init.constant_(self.gigp_lin_layer.weight, 1 / n_aggd_vals)
-            self.init_lin_layer = True
+        if self.init_glob_pool_mean:
+            rel_mask = masked_orbs[:, :, :, :-1] if self.use_orbs_data else masked_orbs
+            n_elems = (rel_mask != 0).sum(dim=[1, 2, 3])
+            return self.orbs_aggregator(masked_transf_orbs) / n_elems.unsqueeze(1)
 
         return self.orbs_aggregator(masked_transf_orbs)
 
