@@ -40,6 +40,4 @@ class ImgGIGP(GIGP):
 
 class MolecGIGP(GIGP):
     def forward(self, x):
-        print(x.shape)
-
         return super().forward(x)

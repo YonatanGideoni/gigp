@@ -67,3 +67,21 @@ def pixels2coords(h: int, w: int):
     coords = torch.stack(torch.meshgrid([i, j]), dim=-1).float()
 
     return coords
+
+
+def init_sum_mlp(mlp):
+    layers = list(mlp.children())
+    for layer in layers[:-1]:
+        try:
+            new_weights = torch.zeros_like(layer.weight)
+            new_weights[0, :] = 1
+            new_weights[1, :] = -1
+
+            layer.weight.requires_grad_(False)
+            layer.weight.copy_(new_weights)
+            nn.init.constant_(layer.bias, 0)
+            layer.weight.requires_grad_(True)
+        except AttributeError:
+            continue
+    nn.init.constant_(layers[-1].bias, 0)
+    nn.init.constant_(layers[-1].weight, 1)
