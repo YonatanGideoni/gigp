@@ -122,7 +122,7 @@ class LieConvGIGP(nn.Module):
                 assert out_dim == 1, 'Error - currently only works when the outdim is 1!'
 
                 nn.init.constant_(self.gigp_lin_layer.weight, 1)
-                init_sum_mlp(self.gigp_orb_mlp, n_inps_sum=in_dim)
+                init_sum_mlp(self.gigp_orb_mlp, n_inps_sum=in_dim, std=init_std)
         else:
             raise NotImplementedError(
                 f"Haven't implemented {agg} aggregation yet for LieConvGIGP!"

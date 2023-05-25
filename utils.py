@@ -70,11 +70,11 @@ def pixels2coords(h: int, w: int):
 
 
 # TODO - clean up+docstring
-def init_sum_mlp(mlp, n_inps_sum: int = None):
+def init_sum_mlp(mlp, n_inps_sum: int = None, std: float = 0.):
     layers = list(mlp.children())
 
     layer = layers[0]
-    new_weights = torch.zeros_like(layer.weight)
+    new_weights = std * torch.randn_like(layer.weight)
     if n_inps_sum is None:
         new_weights[0, :] = 1
         new_weights[1, :] = -1
