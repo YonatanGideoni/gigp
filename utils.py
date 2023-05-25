@@ -89,7 +89,7 @@ def init_sum_mlp(mlp, n_inps_sum: int = None, std: float = 0.):
 
     for layer in layers[1:-1]:
         try:
-            new_weights = torch.zeros_like(layer.weight)
+            new_weights = std * torch.randn_like(layer.weight)
             new_weights[0, 0] = 1
             new_weights[0, 1] = -1
             new_weights[1, 0] = -1
@@ -103,7 +103,7 @@ def init_sum_mlp(mlp, n_inps_sum: int = None, std: float = 0.):
             continue
 
     layer = layers[-1]
-    new_weights = torch.zeros_like(layer.weight)
+    new_weights = std * torch.randn_like(layer.weight)
     new_weights[0, 0] = 1
     new_weights[0, 1] = -1
     layer.weight.requires_grad_(False)
