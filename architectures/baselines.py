@@ -9,7 +9,7 @@ from architectures.LieConv.lie_conv.lieConv import (
     GlobalPool,
     LieConv,
 )
-from architectures.LieConv.lie_conv.lieGroups import SO2, SE3
+from architectures.LieConv.lie_conv.lieGroups import SO2, SE3, SO3, LieGroup
 from architectures.LieConv.lie_conv.masked_batchnorm import MaskBatchNormNd
 from architectures.LieConv.lie_conv.datasets import SO3aug, SE3aug
 from architectures.LieConv.lie_conv.utils import Named, Pass, Expression
@@ -76,7 +76,7 @@ class LieConvGIGP(nn.Module):
             agg: str = "sum",
             use_orbits_data: bool = False,  # ??
             n_orbs: int = 50,  # Number of orbits
-            group=SO2(0),
+            group: LieGroup = SO2(0),
             init_glob_pool: bool = True,
             init_glob_pool_mean: bool = True,
             init_std: float = 1e-3
@@ -253,6 +253,7 @@ class LieResNet(nn.Module, metaclass=Named):
                 use_orbits_data=use_orbits_data,
                 orbs_agg_dist=orbs_agg_dist,
                 agg=gigp_agg,
+                group=group,
             )
         )
         self.net = nn.Sequential(
