@@ -364,8 +364,10 @@ class GIGPMolecLieResNet(LieResNet):
         one_hot_charges = (mb['one_hot'][:, :, :, None] * c_vec[:, :, None, :]).float().reshape(*charges.shape, -1)
         atomic_coords = mb['positions'].float()
         atom_mask = mb['charges'] > 0
-        # print('orig_mask',atom_mask[0].sum())
-        return (atomic_coords, one_hot_charges, atom_mask)
+
+        new_coords = atomic_coords - (atomic_coords.sum(dim=1) / atom_mask.sum(dim=1).unsqueeze(1)).unsqueeze(1)
+
+        return new_coords, one_hot_charges, atom_mask
 
     def forward(self, mb):
         with torch.no_grad():
