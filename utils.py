@@ -72,6 +72,7 @@ def pixels2coords(h: int, w: int):
 # TODO - clean up+docstring
 def init_sum_mlp(mlp, n_inps_sum: int = None, std: float = 0.):
     layers = list(mlp.children())
+    layers = [l for l in layers if hasattr(l, 'weight') and len(l.weight.shape) == 2]
 
     layer = layers[0]
     new_weights = std * torch.randn_like(layer.weight)
@@ -88,19 +89,16 @@ def init_sum_mlp(mlp, n_inps_sum: int = None, std: float = 0.):
     layer.weight.requires_grad_(True)
 
     for layer in layers[1:-1]:
-        try:
-            new_weights = std * torch.randn_like(layer.weight)
-            new_weights[0, 0] = 1
-            new_weights[0, 1] = -1
-            new_weights[1, 0] = -1
-            new_weights[1, 1] = 1
+        new_weights = std * torch.randn_like(layer.weight)
+        new_weights[0, 0] = 1
+        new_weights[0, 1] = -1
+        new_weights[1, 0] = -1
+        new_weights[1, 1] = 1
 
-            layer.weight.requires_grad_(False)
-            layer.weight.copy_(new_weights)
-            nn.init.constant_(layer.bias, 0)
-            layer.weight.requires_grad_(True)
-        except AttributeError:
-            continue
+        layer.weight.requires_grad_(False)
+        layer.weight.copy_(new_weights)
+        nn.init.constant_(layer.bias, 0)
+        layer.weight.requires_grad_(True)
 
     layer = layers[-1]
     new_weights = std * torch.randn_like(layer.weight)

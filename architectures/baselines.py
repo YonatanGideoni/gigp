@@ -80,7 +80,7 @@ class LieConvGIGP(nn.Module):
             group: LieGroup = SO2(0),
             init_glob_pool: bool = True,
             init_glob_pool_mean: bool = True,
-            init_std: float = 0.
+            init_std: float = 1e-6,
     ):
         super().__init__()
 
