@@ -70,7 +70,8 @@ class LieConvGIGP(nn.Module):
     def __init__(
             self,
             in_dim: int,
-            orbs_agg_dist: float = 0.5,  # all orbits within that distance are aggregated as one
+            orbs_agg_dist: float = None,  # all orbits within that distance are aggregated as one
+            n_agg_elems: int = 1,
             hidden_dim: int = 16,
             out_dim: int = 1,
             agg: str = "sum",
@@ -79,9 +80,11 @@ class LieConvGIGP(nn.Module):
             group: LieGroup = SO2(0),
             init_glob_pool: bool = True,
             init_glob_pool_mean: bool = True,
-            init_std: float = 1e-3
+            init_std: float = 0.
     ):
         super().__init__()
+
+        assert n_agg_elems is not None or orbs_agg_dist is not None
 
         # all trainable layers need to have GIGP in their name so we'll know not to freeze them if freezing
         # the base LC layers. This is useful for quickly testing things when we train just the GIGP layers appended
@@ -97,6 +100,7 @@ class LieConvGIGP(nn.Module):
 
         self.use_orbs_data = use_orbits_data
         self.orbs_agg_dist = orbs_agg_dist
+        self.n_agg_elems = n_agg_elems
 
         self.orbs = None
         self.n_orbs = n_orbs
@@ -147,14 +151,16 @@ class LieConvGIGP(nn.Module):
             # match each orbit to the closest one
             self.orbs = torch.linspace(min_orb, max_orb, self.n_orbs).to(DEVICE)
             # TODO - check that agg_orbs_dist isn't too small and give a warning if it's fishy
+
+        orbs_dists = abs(coords[:, :, 1, 1].unsqueeze(-1) - self.orbs.expand(bs, coords.shape[1], self.n_orbs))
         # orbs_mask shape: [bs, coords.shape[1], n_orbs]
-        orbs_mask = (
-                abs(
-                    coords[:, :, 1, 1].unsqueeze(-1)
-                    - self.orbs.expand(bs, coords.shape[1], self.n_orbs)
-                )
-                <= self.orbs_agg_dist
-        )
+        if self.orbs_agg_dist is not None:
+            orbs_mask = orbs_dists <= self.orbs_agg_dist
+        else:
+            _, min_inds = torch.topk(orbs_dists, self.n_agg_elems, largest=False, dim=-1)
+            orbs_mask = torch.zeros_like(orbs_dists, dtype=torch.bool)
+            orbs_mask.scatter_(dim=-1, index=min_inds, value=True)
+
         exp_vals = masked_vals.unsqueeze(-2)
         masked_orbs = torch.where(orbs_mask.unsqueeze(-1), exp_vals, 0.0)
 
@@ -220,8 +226,9 @@ class LieResNet(nn.Module, metaclass=Named):
             cache=False,
             gigp: bool = False,
             use_orbits_data: bool = False,
-            orbs_agg_dist: float = 0,
+            orbs_agg_dist: float = None,
             gigp_agg: str = "sum",
+            n_orbs_agg: int = None,
             **kwargs,
     ):
         super().__init__()
@@ -251,6 +258,7 @@ class LieResNet(nn.Module, metaclass=Named):
                 out_dim=num_outputs,
                 use_orbits_data=use_orbits_data,
                 orbs_agg_dist=orbs_agg_dist,
+                n_agg_elems=n_orbs_agg,
                 agg=gigp_agg,
                 group=group,
             )
