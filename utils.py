@@ -72,6 +72,7 @@ def pixels2coords(h: int, w: int):
 # TODO - clean up+docstring
 def init_sum_mlp(mlp, n_inps_sum: int = None, std: float = 0.):
     layers = list(mlp.children())
+    # second cond is necessary so layers like batchnorm aren't cached
     layers = [l for l in layers if hasattr(l, 'weight') and len(l.weight.shape) == 2]
 
     layer = layers[0]
@@ -108,3 +109,24 @@ def init_sum_mlp(mlp, n_inps_sum: int = None, std: float = 0.):
     layer.weight.copy_(new_weights)
     nn.init.constant_(layer.bias, 0)
     layer.weight.requires_grad_(True)
+
+
+def init_id_mlp(mlp: nn.Module, n_inps: int, std: float = 0.):
+    layers = list(mlp.children())
+    layers = [l for l in layers if hasattr(l, 'weight') and len(l.weight.shape) == 2]
+
+    for n_layer, layer in enumerate(layers):
+        new_weights = std * torch.randn_like(layer.weight)
+
+        new_weights[:n_inps, :n_inps] += torch.eye(n_inps)
+        if n_layer == 0:
+            new_weights[n_inps:2 * n_inps, :n_inps] -= torch.eye(n_inps)
+        elif n_layer == len(layers) - 1:
+            new_weights[:n_inps, n_inps:2 * n_inps] -= torch.eye(n_inps)
+        else:
+            new_weights[n_inps:2 * n_inps, n_inps:2 * n_inps] += torch.eye(n_inps)
+
+        layer.weight.requires_grad_(False)
+        layer.weight.copy_(new_weights)
+        nn.init.constant_(layer.bias, 0)
+        layer.weight.requires_grad_(True)

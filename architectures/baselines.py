@@ -16,7 +16,7 @@ from architectures.LieConv.lie_conv.utils import Named, Pass, Expression
 from architectures.gigp import ImgGIGP
 from consts import N_DIGITS, DEVICE
 from groups import Group
-from utils import init_sum_mlp
+from utils import init_sum_mlp, init_id_mlp
 
 
 # TODO - use/create a baseline that isn't total garbage
@@ -102,6 +102,8 @@ class LieConvGIGP(nn.Module):
         self.orbs_agg_dist = orbs_agg_dist
         self.n_agg_elems = n_agg_elems
 
+        self.out_dim = out_dim
+
         self.orbs = None
         self.n_orbs = n_orbs
 
@@ -123,10 +125,16 @@ class LieConvGIGP(nn.Module):
             if init_glob_pool:
                 assert init_glob_pool_mean, \
                     "Error - haven't yet implemented anything for when the initialisation isn't mean pooling!"
-                assert out_dim == 1, 'Error - currently only works when the outdim is 1!'
 
                 nn.init.constant_(self.gigp_lin_layer.weight, 1)
-                init_sum_mlp(self.gigp_orb_mlp, n_inps_sum=in_dim, std=init_std)
+
+                if out_dim == 1:
+                    init_sum_mlp(self.gigp_orb_mlp, n_inps_sum=in_dim, std=init_std)
+                elif in_dim == out_dim:
+                    assert hidden_dim >= 2 * in_dim, 'Error: hidden dim is too small to implement identity func!'
+                    init_id_mlp(self.gigp_orb_mlp, n_inps=in_dim, std=init_std)
+                else:
+                    raise NotImplementedError
         else:
             raise NotImplementedError(
                 f"Haven't implemented {agg} aggregation yet for LieConvGIGP!"
@@ -185,7 +193,7 @@ class LieConvGIGP(nn.Module):
 
         if self.init_glob_pool_mean:
             rel_mask = masked_orbs[:, :, :, :-1] if self.use_orbs_data else masked_orbs
-            n_elems = (rel_mask != 0).sum(dim=[1, 2, 3])
+            n_elems = (rel_mask != 0).sum(dim=[1, 2, 3]) // self.out_dim
             return self.orbs_aggregator(masked_transf_orbs) / n_elems.unsqueeze(1)
 
         return self.orbs_aggregator(masked_transf_orbs)
@@ -229,6 +237,7 @@ class LieResNet(nn.Module, metaclass=Named):
             orbs_agg_dist: float = None,
             gigp_agg: str = "sum",
             n_orbs_agg: int = None,
+            gigp_hidden_dim: int = 16,
             **kwargs,
     ):
         super().__init__()
@@ -261,6 +270,7 @@ class LieResNet(nn.Module, metaclass=Named):
                 n_agg_elems=n_orbs_agg,
                 agg=gigp_agg,
                 group=group,
+                hidden_dim=gigp_hidden_dim
             )
         )
         self.net = nn.Sequential(
